@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>My CFO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#10141b; --ink2:#161b25; --ink3:#1c2330; --ink4:#222a3a;
+  --line:#2a3242; --line-soft:#222838;
+  --parchment:#EDE6D6;
+  --brass:#c9a227; --brass-soft:#e3c459; --brass-dim:#8a6f1f;
+  --sage:#74a98a; --sage-dim:#4f7a64;
+  --rust:#c1604b; --rust-dim:#8f4636;
+  --text:#e9e6dd; --text-dim:#9aa3b8; --text-faint:#5c6478;
+  --serif:'Fraunces',serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--ink);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:15px;-webkit-font-smoothing:antialiased}
+.app{max-width:1040px;margin:0 auto;padding-bottom:70px}
+::selection{background:var(--brass-dim);color:var(--ink)}
+
+/* ── Topbar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:30px;height:30px;border:1.5px solid var(--brass);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:14px;color:var(--brass);font-weight:600}
+.brand-name{font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:.01em;color:var(--text)}
+.brand-date{font-size:12px;color:var(--text-faint);margin-left:8px;font-family:var(--mono)}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.sync-pill{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);color:var(--text-dim);font-family:var(--mono)}
+.sync-ok{color:var(--sage);border-color:var(--sage-dim)}
+.sync-err{color:var(--rust);border-color:var(--rust-dim)}
+.sync-loading{color:var(--brass);border-color:var(--brass-dim)}
+
+/* ── Nav (desktop pill row) ── */
+nav.topnav{display:flex;gap:6px;padding:14px 20px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+nav.topnav::-webkit-scrollbar{display:none}
+nav.topnav button{background:transparent;border:1px solid var(--line);color:var(--text-dim);border-radius:18px;padding:7px 15px;font-size:13px;font-family:var(--sans);cursor:pointer;white-space:nowrap;transition:.15s}
+nav.topnav button.active{border-color:var(--brass);color:var(--brass-soft);background:rgba(201,162,39,.08)}
+nav.topnav button:hover{color:var(--text)}
+
+/* ── Bottom mobile nav ── */
+.bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--ink2);border-top:1px solid var(--line);z-index:100;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.bottomnav-inner{display:flex;justify-content:space-around;max-width:1040px;margin:0 auto}
+.bottomnav button{background:none;border:none;color:var(--text-faint);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-family:var(--sans);padding:6px 8px;cursor:pointer;flex:1}
+.bottomnav button.active{color:var(--brass-soft)}
+.bottomnav svg{width:19px;height:19px}
+@media(max-width:680px){
+  .bottomnav{display:block}
+  .app{padding-bottom:76px}
+  nav.topnav{display:none}
+}
+
+.tab{display:none;padding:22px 20px}
+.tab.active{display:block}
+
+/* ── Gauge (signature element) ── */
+.gauge-wrap{display:flex;align-items:center;gap:28px;background:var(--ink2);border:1px solid var(--line);border-radius:14px;padding:24px 28px;margin-bottom:18px;flex-wrap:wrap}
+.gauge-box{position:relative;width:200px;height:112px;flex-shrink:0}
+.gauge-svg{width:200px;height:112px;overflow:visible}
+.gauge-track{fill:none;stroke:var(--line);stroke-width:13;stroke-linecap:round}
+.gauge-fill{fill:none;stroke-width:13;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1),stroke .4s}
+.gauge-center{position:absolute;left:0;right:0;bottom:6px;text-align:center}
+.gauge-num{font-family:var(--serif);font-size:40px;font-weight:600;line-height:1;color:var(--text)}
+.gauge-sub{font-size:10px;color:var(--text-faint);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.gauge-ticks{position:absolute;width:200px;display:flex;justify-content:space-between;bottom:-2px;font-family:var(--mono);font-size:10px;color:var(--text-faint)}
+.gauge-ticks span:last-child{margin-left:-8px}
+.gauge-meta{flex:1;min-width:180px}
+.gauge-meta-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.gauge-meta-row:last-child{border-bottom:none}
+.gauge-meta-label{color:var(--text-dim)}
+.gauge-meta-val{font-family:var(--mono);font-weight:500}
+
+/* ── Stat stubs (receipt-style) ── */
+.stub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.stub{background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;position:relative}
+.stub::before{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:repeating-linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px)}
+.stub-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-faint);font-family:var(--mono);margin-bottom:7px}
+.stub-val{font-family:var(--serif);font-size:23px;font-weight:600}
+.green{color:var(--sage)}.red{color:var(--rust)}.brass{color:var(--brass-soft)}.muted{color:var(--text-dim)}
+
+.panel{background:var(--ink2);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.panel h3{font-size:11px;color:var(--text-faint);margin-bottom:14px;text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.empty{color:var(--text-faint);font-size:13px;text-align:center;padding:30px 0;font-style:italic}
+
+input,select,textarea{background:var(--ink3);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px 12px;font-size:14px;width:100%;margin-bottom:9px;font-family:var(--sans)}
+input:focus,select:focus{outline:none;border-color:var(--brass)}
+label{font-size:11px;color:var(--text-faint);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-family:var(--mono)}
+.btn{background:var(--brass);color:var(--ink);border:none;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:4px;font-family:var(--sans);transition:.15s}
+.btn:hover{background:var(--brass-soft)}
+.btn:disabled{background:var(--ink4);color:var(--text-faint)}
+.btn-sm{background:transparent;border:1px solid var(--line);color:var(--text-dim);border-radius:6px;padding:4px 11px;font-size:12px;cursor:pointer}
+.btn-sm:hover{border-color:var(--rust);color:var(--rust)}
+.btn-outline{background:transparent;border:1px solid var(--brass);color:var(--brass-soft);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;width:100%}
+.btn-outline:hover{background:rgba(201,162,39,.08)}
+.btn-danger{background:rgba(193,96,75,.1);color:var(--rust);border:1px solid var(--rust-dim);border-radius:8px;padding:10px;font-size:14px;font-weight:600;cursor:pointer;width:100%}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+
+.tx-list{max-height:380px;overflow-y:auto}
+.tx-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.tx-item:last-child{border-bottom:none}
+.tx-desc{font-size:14px}
+.tx-meta{font-size:11px;color:var(--text-faint);margin-top:2px;font-family:var(--mono)}
+.tx-amt{font-family:var(--mono);font-size:15px;font-weight:600}
+.tx-del{color:var(--text-faint);font-size:10px;cursor:pointer;margin-top:3px;display:block;font-family:var(--mono)}
+.tx-del:hover{color:var(--rust)}
+
+.filter-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.filter-btn{background:transparent;border:1px solid var(--line);color:var(--text-dim);border-radius:16px;padding:4px 13px;font-size:12px;cursor:pointer}
+.filter-btn.active{border-color:var(--brass);color:var(--brass-soft);background:rgba(201,162,39,.08)}
+
+.goal-item{background:var(--ink3);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:9px}
+.goal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.goal-name{font-family:var(--serif);font-size:15px;font-weight:600}
+.progress{background:var(--ink4);border-radius:5px;height:7px;overflow:hidden}
+.progress-fill{height:100%;background:var(--brass);border-radius:5px;transition:width .5s}
+.goal-details{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11px;color:var(--text-faint);font-family:var(--mono)}
+
+.inv-item{display:flex;justify-content:space-between;align-items:center;background:var(--ink3);border-radius:9px;padding:12px 14px;margin-bottom:7px}
+.inv-name{font-size:14px}
+.inv-type{font-size:11px;color:var(--text-faint);margin-top:2px;font-family:var(--mono)}
+.inv-val{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--sage);text-align:right}
+
+.chart-box{position:relative;height:230px;margin-top:6px}
+.chart-box-tall{height:280px}
+
+.ai-msg{background:var(--ink3);border-radius:10px;padding:13px 15px;margin-bottom:10px;font-size:14px;line-height:1.6}
+.ai-msg.user{background:rgba(201,162,39,.07);border:1px solid var(--brass-dim);text-align:right}
+.ai-input-row{display:flex;gap:8px}
+.ai-input-row input{margin:0}
+.ai-input-row button{background:var(--brass);color:var(--ink);border:none;border-radius:8px;padding:0 18px;font-weight:600;cursor:pointer;flex-shrink:0}
+.tag{display:inline-block;font-size:10px;padding:2px 9px;border-radius:10px;background:rgba(201,162,39,.1);color:var(--brass-soft);border:1px solid var(--brass-dim);font-family:var(--mono)}
+
+.setup-section{background:var(--ink2);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px}
+.setup-section h3{font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;font-family:var(--mono)}
+
+.onboard{max-width:460px;margin:48px auto;background:var(--ink2);border:1px solid var(--line);border-radius:16px;padding:30px;text-align:center}
+.onboard h2{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--brass-soft);margin-bottom:8px}
+.onboard p{color:var(--text-dim);font-size:13px;line-height:1.6;margin-bottom:18px}
+.step-dots{display:flex;justify-content:center;gap:6px;margin-bottom:22px}
+.step-dot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:.3s}
+.step-dot.active{background:var(--brass)}
+.divider{border:none;border-top:1px solid var(--line);margin:14px 0}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(8,10,14,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--ink2);border:1px solid var(--line);border-radius:14px;padding:24px;width:100%;max-width:380px}
+.modal h3{font-family:var(--serif);font-size:17px;margin-bottom:14px}
+.modal-btns{display:flex;gap:8px;margin-top:16px}
+.modal-btns button{flex:1}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.section-head h3{margin:0;color:var(--text);font-size:14px;font-family:var(--serif);font-weight:600}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--brass);border-radius:50%;animation:spin .6s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+a{color:var(--brass-soft)}
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div id="onboard-screen" style="display:none;padding:16px">
+  <div class="onboard">
+    <div class="step-dots"><div class="step-dot active" id="dot1"></div><div class="step-dot" id="dot2"></div><div class="step-dot" id="dot3"></div></div>
+    <div id="step1">
+      <h2>My CFO</h2>
+      <p>Your personal ledger, instrumented. Connect your Supabase database to begin.</p>
+      <label>Supabase Project URL</label>
+      <input id="ob-url" placeholder="https://xxxx.supabase.co" type="url">
+      <label>Supabase Anon Key</label>
+      <input id="ob-key" placeholder="eyJhbGci…" type="text">
+      <button class="btn" id="ob-next1">Connect →</button>
+      <hr class="divider">
+      <details style="text-align:left"><summary style="font-size:12px;color:var(--text-dim);cursor:pointer">Supabase setup guide</summary>
+        <div style="font-size:12px;color:var(--text-faint);line-height:1.8;margin-top:8px">
+          1. supabase.com → New project<br>2. Copy URL + anon key from Settings → API<br>3. Run the setup SQL in SQL Editor<br>4. Paste above
+        </div>
+      </details>
+    </div>
+    <div id="step2" style="display:none">
+      <h2>Your numbers</h2>
+      <p>Set your basics — change anytime in Setup.</p>
+      <label>Monthly take-home income (£)</label><input id="ob-income" type="number" placeholder="3000">
+      <label>Monthly spending budget (£)</label><input id="ob-budget" type="number" placeholder="2000">
+      <label>Monthly savings target (£)</label><input id="ob-savetarget" type="number" placeholder="500">
+      <label>Currency symbol</label><input id="ob-currency" placeholder="£" maxlength="3">
+      <button class="btn" id="ob-next2">Save & continue →</button>
+    </div>
+    <div id="step3" style="display:none">
+      <h2>Ready.</h2>
+      <p>Your ledger is live and syncs across every device.</p>
+      <button class="btn" id="ob-done">Open My CFO →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" style="display:none">
+  <div class="app">
+    <div class="topbar">
+      <div class="brand"><div class="brand-mark">£</div><div class="brand-name">My CFO</div><span class="brand-date" id="topdate"></span></div>
+      <div class="topbar-right">
+        <span class="sync-pill sync-ok" id="sync-badge">synced</span>
+      </div>
+    </div>
+
+    <nav class="topnav" id="nav">
+      <button class="active" data-tab="overview">Overview</button>
+      <button data-tab="dailylog">Daily log</button>
+      <button data-tab="weekly">Weekly</button>
+      <button data-tab="monthly">Monthly</button>
+      <button data-tab="goals">Goals</button>
+      <button data-tab="forecast">Forecast</button>
+      <button data-tab="ai">AI advisor</button>
+      <button data-tab="setup">Setup</button>
+    </nav>
+
+    <!-- OVERVIEW -->
+    <div class="tab active" id="tab-overview">
+      <div class="gauge-wrap">
+        <div class="gauge-box">
+          <svg class="gauge-svg" viewBox="0 0 200 112">
+            <path class="gauge-track" d="M20,100 A80,80 0 0 1 180,100"/>
+            <path class="gauge-fill" id="gauge-fill" d="M20,100 A80,80 0 0 1 180,100"/>
+          </svg>
+          <div class="gauge-center"><div class="gauge-num" id="gauge-num">—</div><div class="gauge-sub">Health score</div></div>
+          <div class="gauge-ticks"><span>0</span><span>100</span></div>
+        </div>
+        <div class="gauge-meta">
+          <div class="gauge-meta-row"><span class="gauge-meta-label">Savings rate</span><span class="gauge-meta-val" id="ov-saverate">—</span></div>
+          <div class="gauge-meta-row"><span class="gauge-meta-label">Net worth</span><span class="gauge-meta-val" id="ov-networth">—</span></div>
+          <div class="gauge-meta-row"><span class="gauge-meta-label">Cash flow this month</span><span class="gauge-meta-val" id="ov-cashflow">—</span></div>
+        </div>
+      </div>
+
+      <div class="stub-grid">
+        <div class="stub"><div class="stub-label">Income</div><div class="stub-val green" id="ov-income">£0</div></div>
+        <div class="stub"><div class="stub-label">Spent</div><div class="stub-val" id="ov-spent">£0</div></div>
+        <div class="stub"><div class="stub-label">Invested</div><div class="stub-val brass" id="ov-invested">£0</div></div>
+        <div class="stub"><div class="stub-label">Optional spend</div><div class="stub-val brass" id="ov-optional">£0</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="panel"><h3>Investments</h3><div id="ov-investments"><div class="empty">Add accounts in Setup</div></div></div>
+        <div class="panel"><h3>Goals</h3><div id="ov-goals"><div class="empty">Add goals in the Goals tab</div></div></div>
+      </div>
+    </div>
+
+    <!-- DAILY LOG -->
+    <div class="tab" id="tab-dailylog">
+      <div class="setup-section">
+        <h3>Add transaction</h3>
+        <div class="form-row">
+          <div><label>Description</label><input id="tx-desc" placeholder="e.g. Salary, Tesco…"></div>
+          <div><label>Amount (£)</label><input id="tx-amt" type="number" placeholder="0.00" min="0" step="0.01"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Category</label>
+            <select id="tx-cat">
+              <option value="income">Income</option><option value="expense" selected>Expense</option><option value="investment">Investment</option>
+            </select>
+          </div>
+          <div><label>Sub-category</label>
+            <select id="tx-subcat">
+              <option value="salary">Salary</option><option value="freelance">Freelance / business</option><option value="other-income">Other income</option>
+              <option value="housing">Housing</option><option value="food">Food & groceries</option><option value="transport">Transport</option>
+              <option value="bills">Bills & utilities</option><option value="health">Health</option><option value="entertainment">Entertainment</option>
+              <option value="shopping">Shopping</option><option value="dining">Dining out</option><option value="other-expense">Other expense</option>
+              <option value="stocks">Stocks / ETFs</option><option value="pension">Pension</option><option value="crypto">Crypto</option>
+              <option value="property">Property</option><option value="other-inv">Other investment</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div><label>Date</label><input id="tx-date" type="date"></div>
+          <div><label>Note (optional)</label><input id="tx-note" placeholder="Optional note"></div>
+        </div>
+        <button class="btn" id="add-tx-btn">Add transaction</button>
+      </div>
+      <div class="panel">
+        <div class="section-head"><h3>Transactions</h3><span style="font-size:11px;color:var(--text-faint);font-family:var(--mono)" id="tx-count">0 entries</span></div>
+        <div class="filter-row" id="dl-filters">
+          <button class="filter-btn active" data-cat="all">All</button>
+          <button class="filter-btn" data-cat="income">Income</button>
+          <button class="filter-btn" data-cat="expense">Expenses</button>
+          <button class="filter-btn" data-cat="investment">Investment</button>
+        </div>
+        <div class="tx-list" id="tx-list"><div class="empty">No transactions yet</div></div>
+      </div>
+    </div>
+
+    <!-- WEEKLY -->
+    <div class="tab" id="tab-weekly">
+      <div class="stub-grid" id="weekly-cards"></div>
+      <div class="panel"><h3>Spending by category</h3><div class="chart-box"><canvas id="weekly-chart"></canvas></div></div>
+    </div>
+
+    <!-- MONTHLY -->
+    <div class="tab" id="tab-monthly">
+      <div class="stub-grid" id="monthly-cards"></div>
+      <div class="panel"><h3>Spending by category</h3><div class="chart-box"><canvas id="monthly-chart"></canvas></div></div>
+    </div>
+
+    <!-- GOALS -->
+    <div class="tab" id="tab-goals">
+      <div class="setup-section">
+        <h3>Add goal</h3>
+        <div class="form-row">
+          <div><label>Goal name</label><input id="goal-name" placeholder="e.g. Emergency fund"></div>
+          <div><label>Target amount (£)</label><input id="goal-target" type="number" placeholder="10000"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Current savings (£)</label><input id="goal-current" type="number" placeholder="0"></div>
+          <div><label>Target date</label><input id="goal-date" type="date"></div>
+        </div>
+        <button class="btn" id="add-goal-btn">Add goal</button>
+      </div>
+      <div id="goals-list"></div>
+    </div>
+
+    <!-- FORECAST -->
+    <div class="tab" id="tab-forecast">
+      <div class="panel"><h3>6-month forecast</h3><div class="chart-box chart-box-tall"><canvas id="forecast-chart"></canvas></div></div>
+      <div class="panel"><h3>Projected net worth</h3><div class="chart-box"><canvas id="networth-chart"></canvas></div></div>
+    </div>
+
+    <!-- AI -->
+    <div class="tab" id="tab-ai">
+      <div class="section-head"><h3>AI financial advisor</h3><span class="tag" id="ai-provider-tag">Powered by Claude</span></div>
+      <div class="filter-row" style="margin-bottom:14px">
+        <button class="filter-btn active" id="provider-claude" data-provider="claude">Claude</button>
+        <button class="filter-btn" id="provider-gemini" data-provider="gemini">Gemini</button>
+      </div>
+      <div id="ai-chat" style="margin-bottom:12px;max-height:420px;overflow-y:auto"></div>
+      <div class="ai-input-row"><input id="ai-input" placeholder="Ask me anything about your finances…"><button id="ai-send">Ask →</button></div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap" id="ai-suggestions"></div>
+    </div>
+
+    <!-- SETUP -->
+    <div class="tab" id="tab-setup">
+      <div class="setup-section">
+        <h3>Profile</h3>
+        <div class="form-row">
+          <div><label>Monthly income (£)</label><input id="s-income" type="number" placeholder="0"></div>
+          <div><label>Monthly savings target (£)</label><input id="s-save-target" type="number" placeholder="0"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Monthly budget (£)</label><input id="s-budget" type="number" placeholder="0"></div>
+          <div><label>Currency symbol</label><input id="s-currency" placeholder="£" maxlength="3"></div>
+        </div>
+        <button class="btn" id="save-profile-btn">Save profile</button>
+      </div>
+      <div class="setup-section">
+        <h3>Investment accounts</h3>
+        <div class="form-row">
+          <div><label>Account name</label><input id="inv-name" placeholder="e.g. Stocks & Shares ISA"></div>
+          <div><label>Current balance (£)</label><input id="inv-bal" type="number" placeholder="0"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Type</label>
+            <select id="inv-type">
+              <option value="ISA">ISA</option><option value="SIPP/Pension">SIPP / Pension</option><option value="GIA">GIA</option>
+              <option value="Crypto">Crypto</option><option value="Property">Property</option><option value="Other">Other</option>
+            </select>
+          </div>
+          <div><label>Monthly contribution (£)</label><input id="inv-contrib" type="number" placeholder="0"></div>
+        </div>
+        <button class="btn" id="add-inv-btn">Add account</button>
+        <div id="inv-list" style="margin-top:10px"></div>
+      </div>
+      <div class="setup-section">
+        <h3>AI settings</h3>
+        <p style="font-size:12px;color:var(--text-faint);margin-bottom:10px">Required for the AI advisor. Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys.</p>
+        <label>Anthropic API key (Claude)</label><input id="s-anthropic-key" type="password" placeholder="sk-ant-…">
+        <button class="btn" id="save-ai-key-btn">Save Claude key</button>
+        <div id="ai-key-status" style="font-size:12px;margin-top:6px;margin-bottom:14px"></div>
+        <hr class="divider">
+        <p style="font-size:12px;color:var(--text-faint);margin-bottom:10px">For Gemini, get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>.</p>
+        <label>Google Gemini API key</label><input id="s-gemini-key" type="password" placeholder="AIza…">
+        <button class="btn" id="save-gemini-key-btn">Save Gemini key</button>
+        <div id="gemini-key-status" style="font-size:12px;margin-top:6px"></div>
+      </div>
+      <div class="setup-section">
+        <h3>Export data</h3>
+        <p style="font-size:12px;color:var(--text-faint);margin-bottom:12px">Download everything as Excel or CSV.</p>
+        <button class="btn" id="export-excel-btn" style="margin-bottom:8px">⬇ Download Excel (.xlsx)</button>
+        <button class="btn-outline" id="export-csv-btn">⬇ Download CSV (transactions)</button>
+      </div>
+      <div class="setup-section">
+        <h3>Database connection</h3>
+        <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px">Connected to: <span id="db-url-display" class="brass">—</span></div>
+        <button class="btn-outline" id="change-db-btn">Change database connection</button>
+      </div>
+      <div class="setup-section" style="border-color:var(--rust-dim)">
+        <h3 style="color:var(--rust)">Danger zone</h3>
+        <button class="btn-danger" id="reset-btn">Reset all data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<div class="bottomnav" id="bottomnav">
+  <div class="bottomnav-inner">
+    <button class="active" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Overview</button>
+    <button data-tab="dailylog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>Log</button>
+    <button data-tab="goals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Goals</button>
+    <button data-tab="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>AI</button>
+    <button data-tab="setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h0a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5h0a1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v0a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Setup</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="delete-modal" style="display:none">
+  <div class="modal">
+    <h3>Delete transaction?</h3>
+    <p style="font-size:13px;color:var(--text-dim)" id="delete-modal-desc">This cannot be undone.</p>
+    <div class="modal-btns"><button class="btn-outline" id="delete-cancel">Cancel</button><button class="btn-danger" id="delete-confirm">Delete</button></div>
+  </div>
+</div>
+
+<script>
+let SUPABASE_URL = localStorage.getItem('mycfo_url')||'';
+let SUPABASE_KEY = localStorage.getItem('mycfo_key')||'';
+let pendingDeleteId = null;
+let state = { profile:{income:0,saveTarget:0,budget:0,currency:'£'}, transactions:[], goals:[], investments:[], aiChat:[] };
+let charts = {};
+
+const sbHeaders = ()=>({'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation'});
+async function sbGet(table){ const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?order=created_at.desc`,{headers:sbHeaders()}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function sbInsert(table,data){ const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}`,{method:'POST',headers:sbHeaders(),body:JSON.stringify(data)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function sbUpdate(table,id,data){ const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`,{method:'PATCH',headers:{...sbHeaders(),'Prefer':'return=minimal'},body:JSON.stringify(data)}); if(!r.ok) throw new Error(await r.text()); }
+async function sbDelete(table,id){ const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`,{method:'DELETE',headers:sbHeaders()}); if(!r.ok) throw new Error(await r.text()); }
+async function sbUpsert(table,data,onConflict='id'){ const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?on_conflict=${onConflict}`,{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(data)}); if(!r.ok) throw new Error(await r.text()); }
+
+function setSyncStatus(status,msg){ const el=document.getElementById('sync-badge'); el.className='sync-pill sync-'+status; el.textContent=msg; }
+
+async function loadAll(){
+  setSyncStatus('loading','syncing…');
+  try{
+    const [profileRows, txRows, goalRows, invRows] = await Promise.all([sbGet('cfo_profile'),sbGet('cfo_transactions'),sbGet('cfo_goals'),sbGet('cfo_investments')]);
+    if(profileRows.length) state.profile = profileRows[0];
+    state.transactions = txRows; state.goals = goalRows; state.investments = invRows;
+    setSyncStatus('ok','synced');
+    loadSetupFields(); renderAll();
+  }catch(e){ setSyncStatus('err','offline'); console.error(e); }
+}
+
+async function saveProfile(){
+  const p = { id: state.profile.id||1, income: parseFloat(document.getElementById('s-income').value)||0, save_target: parseFloat(document.getElementById('s-save-target').value)||0, budget: parseFloat(document.getElementById('s-budget').value)||0, currency: document.getElementById('s-currency').value||'£' };
+  setSyncStatus('loading','saving…');
+  try{ await sbUpsert('cfo_profile',p); state.profile=p; setSyncStatus('ok','synced'); renderAll(); }catch(e){ setSyncStatus('err','error'); }
+}
+
+function loadSetupFields(){
+  const p=state.profile;
+  document.getElementById('s-income').value=p.income||'';
+  document.getElementById('s-save-target').value=p.save_target||p.saveTarget||'';
+  document.getElementById('s-budget').value=p.budget||'';
+  document.getElementById('s-currency').value=p.currency||'£';
+  const ak=localStorage.getItem('mycfo_anthropic_key')||'';
+  if(ak){ document.getElementById('s-anthropic-key').value=ak; document.getElementById('ai-key-status').innerHTML='<span class="green">✓ Claude key saved</span>'; }
+  const gk=localStorage.getItem('mycfo_gemini_key')||'';
+  if(gk){ document.getElementById('s-gemini-key').value=gk; document.getElementById('gemini-key-status').innerHTML='<span class="green">✓ Gemini key saved</span>'; }
+  const url=SUPABASE_URL.replace('https://','').split('.')[0];
+  document.getElementById('db-url-display').textContent = url? url+'…supabase.co':'—';
+}
+
+async function addTransaction(){
+  const desc=document.getElementById('tx-desc').value.trim(); const amt=parseFloat(document.getElementById('tx-amt').value);
+  if(!desc||!amt||amt<=0){ alert('Please fill in description and a positive amount.'); return; }
+  const tx={ description:desc, amount:amt, category:document.getElementById('tx-cat').value, subcat:document.getElementById('tx-subcat').value, date:document.getElementById('tx-date').value, note:document.getElementById('tx-note').value.trim() };
+  const btn=document.getElementById('add-tx-btn'); btn.disabled=true; btn.textContent='Adding…';
+  setSyncStatus('loading','saving…');
+  try{
+    const rows=await sbInsert('cfo_transactions',tx); state.transactions.unshift(rows[0]); setSyncStatus('ok','synced');
+    document.getElementById('tx-desc').value=''; document.getElementById('tx-amt').value=''; document.getElementById('tx-note').value=''; renderAll();
+  }catch(e){ setSyncStatus('err','error'); alert('Could not save: '+e.message); }
+  btn.disabled=false; btn.textContent='Add transaction';
+}
+
+function confirmDelete(id,desc,amt){ pendingDeleteId=id; document.getElementById('delete-modal-desc').textContent=`Delete "${desc}" (${fmt(amt)})?`; document.getElementById('delete-modal').style.display='flex'; }
+document.getElementById('delete-cancel').addEventListener('click',()=>{ document.getElementById('delete-modal').style.display='none'; pendingDeleteId=null; });
+document.getElementById('delete-confirm').addEventListener('click', async ()=>{
+  document.getElementById('delete-modal').style.display='none'; if(!pendingDeleteId) return;
+  setSyncStatus('loading','deleting…');
+  try{ await sbDelete('cfo_transactions',pendingDeleteId); state.transactions=state.transactions.filter(t=>t.id!==pendingDeleteId); setSyncStatus('ok','synced'); renderAll(); }
+  catch(e){ setSyncStatus('err','error'); alert('Delete failed: '+e.message); }
+  pendingDeleteId=null;
+});
+
+async function addGoal(){
+  const name=document.getElementById('goal-name').value.trim(); const target=parseFloat(document.getElementById('goal-target').value)||0;
+  const current=parseFloat(document.getElementById('goal-current').value)||0; const date=document.getElementById('goal-date').value;
+  if(!name||target<=0){ alert('Please enter a goal name and target amount.'); return; }
+  setSyncStatus('loading','saving…');
+  try{
+    const rows=await sbInsert('cfo_goals',{name,target_amount:target,current_amount:current,target_date:date||null});
+    state.goals.push(rows[0]); setSyncStatus('ok','synced');
+    document.getElementById('goal-name').value=''; document.getElementById('goal-target').value=''; document.getElementById('goal-current').value=''; document.getElementById('goal-date').value=''; renderAll();
+  }catch(e){ setSyncStatus('err','error'); }
+}
+async function deleteGoal(id){ if(!confirm('Remove this goal?')) return; setSyncStatus('loading','saving…'); try{ await sbDelete('cfo_goals',id); state.goals=state.goals.filter(g=>g.id!==id); setSyncStatus('ok','synced'); renderAll(); }catch(e){ setSyncStatus('err','error'); } }
+
+async function addInvestment(){
+  const name=document.getElementById('inv-name').value.trim(); const balance=parseFloat(document.getElementById('inv-bal').value)||0;
+  if(!name){ alert('Please enter an account name.'); return; }
+  setSyncStatus('loading','saving…');
+  try{
+    const rows=await sbInsert('cfo_investments',{name,balance,type:document.getElementById('inv-type').value,monthly_contribution:parseFloat(document.getElementById('inv-contrib').value)||0});
+    state.investments.push(rows[0]); setSyncStatus('ok','synced');
+    document.getElementById('inv-name').value=''; document.getElementById('inv-bal').value=''; document.getElementById('inv-contrib').value=''; renderAll();
+  }catch(e){ setSyncStatus('err','error'); }
+}
+async function deleteInv(id){ if(!confirm('Remove this investment account?')) return; setSyncStatus('loading','saving…'); try{ await sbDelete('cfo_investments',id); state.investments=state.investments.filter(i=>i.id!==id); setSyncStatus('ok','synced'); renderAll(); }catch(e){ setSyncStatus('err','error'); } }
+
+const now=new Date(); const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const cur=()=> state.profile.currency||'£';
+const fmt=(n,showSign=false)=>{ const s=Math.abs(Math.round(n)).toLocaleString('en-GB'); if(showSign) return (n>=0?'+':'-')+cur()+s; return cur()+s; };
+const pct=n=>Math.round(n)+'%';
+
+function getMonthTx(offset=0){ const d=new Date(now.getFullYear(),now.getMonth()+offset,1); const yr=d.getFullYear(),mo=d.getMonth(); return state.transactions.filter(t=>{ const td=new Date(t.date); return td.getFullYear()===yr&&td.getMonth()===mo; }); }
+function getWeekTx(){ const start=new Date(now); start.setDate(now.getDate()-now.getDay()+1); start.setHours(0,0,0,0); return state.transactions.filter(t=>new Date(t.date)>=start); }
+function calcStats(txs){ let income=0,spent=0,invested=0,optional=0; txs.forEach(t=>{ if(t.category==='income') income+=Number(t.amount); else if(t.category==='investment') invested+=Number(t.amount); else { spent+=Number(t.amount); if(['entertainment','shopping','dining'].includes(t.subcat)) optional+=Number(t.amount); } }); const cashflow=income-spent-invested; const saverate=income>0?Math.round((cashflow/income)*100):0; return {income,spent,invested,optional,cashflow,saverate}; }
+function calcHealth(stats){ let s=30; if(stats.income>0){ s+=Math.min(25,stats.saverate*0.5); if(stats.saverate>=20) s+=10; const invR=(stats.invested/stats.income)*100; s+=Math.min(15,invR*0.75); const bu=state.profile.budget>0?(stats.spent/state.profile.budget)*100:100; if(bu<=80) s+=10; else if(bu<=100) s+=5; if(state.goals.length>0) s+=5; if(state.investments.length>0) s+=5; } return Math.min(100,Math.max(0,Math.round(s))); }
+
+const GAUGE_LEN = 251.2;
+function renderGauge(score){
+  const fill=document.getElementById('gauge-fill');
+  const offset = GAUGE_LEN - (GAUGE_LEN*score/100);
+  fill.style.strokeDasharray = GAUGE_LEN;
+  fill.style.strokeDashoffset = offset;
+  fill.style.stroke = score>=70? 'var(--sage)' : score>=40? 'var(--brass)' : 'var(--rust)';
+  document.getElementById('gauge-num').textContent = score;
+}
+
+function renderAll(){
+  const mTx=getMonthTx(), stats=calcStats(mTx), health=calcHealth(stats);
+  const networth=state.investments.reduce((s,i)=>s+(Number(i.balance)||0),0);
+  renderGauge(health);
+  document.getElementById('ov-saverate').textContent=pct(stats.saverate);
+  document.getElementById('ov-networth').textContent=fmt(networth);
+  document.getElementById('ov-cashflow').textContent=fmt(stats.cashflow,true);
+  document.getElementById('ov-income').textContent=fmt(stats.income);
+  document.getElementById('ov-spent').textContent=fmt(stats.spent);
+  document.getElementById('ov-invested').textContent=fmt(stats.invested);
+  document.getElementById('ov-optional').textContent=fmt(stats.optional);
+
+  renderOvInv(); renderOvGoals(); renderTxList();
+  renderWeekly(); renderMonthly(); renderGoals();
+  renderForecast(); renderInvList(); renderAiSuggestions();
+}
+
+function renderOvInv(){ const el=document.getElementById('ov-investments'); if(!state.investments.length){el.innerHTML='<div class="empty">Add accounts in Setup</div>';return;}
+  el.innerHTML=state.investments.map(i=>`<div class="inv-item"><div><div class="inv-name">${i.name}</div><div class="inv-type">${i.type}</div></div><div><div class="inv-val">${fmt(i.balance)}</div>${i.monthly_contribution>0?`<div style="font-size:11px;color:var(--sage);text-align:right;font-family:var(--mono)">+${fmt(i.monthly_contribution)}/mo</div>`:''}</div></div>`).join(''); }
+
+function renderOvGoals(){ const el=document.getElementById('ov-goals'); if(!state.goals.length){el.innerHTML='<div class="empty">Add goals in the Goals tab</div>';return;}
+  el.innerHTML=state.goals.map(g=>{ const p=g.target_amount>0?Math.min(100,Math.round((g.current_amount/g.target_amount)*100)):0;
+    return `<div class="goal-item"><div class="goal-header"><span class="goal-name">${g.name}</span><span style="font-family:var(--mono);font-size:12px;color:var(--text-dim)">${p}%</span></div><div class="progress"><div class="progress-fill" style="width:${p}%"></div></div></div>`; }).join(''); }
+
+function renderTxList(){
+  const filter=document.querySelector('#dl-filters .filter-btn.active')?.dataset.cat||'all';
+  const txs=filter==='all'?state.transactions:state.transactions.filter(t=>t.category===filter);
+  const el=document.getElementById('tx-list');
+  document.getElementById('tx-count').textContent=txs.length+' entr'+(txs.length===1?'y':'ies');
+  if(!txs.length){el.innerHTML='<div class="empty">No transactions yet</div>';return;}
+  el.innerHTML=txs.map(t=>{ const col=t.category==='income'?'green':t.category==='investment'?'brass':''; const sign=t.category==='income'?'+':'-';
+    return `<div class="tx-item"><div><div class="tx-desc">${t.description||t.desc||''}</div><div class="tx-meta">${t.date}${t.subcat?' · '+t.subcat:''}${t.note?' · '+t.note:''}</div></div><div style="text-align:right"><div class="tx-amt ${col}">${sign}${fmt(t.amount)}</div><span class="tx-del" onclick="confirmDelete('${t.id}','${(t.description||t.desc||'').replace(/'/g,"\\'")}',${t.amount})">delete</span></div></div>`; }).join(''); }
+
+function catBreakdown(txs){
+  const bycat={}; txs.filter(t=>t.category==='expense').forEach(t=>{ bycat[t.subcat]=(bycat[t.subcat]||0)+Number(t.amount); });
+  return Object.entries(bycat).sort((a,b)=>b[1]-a[1]);
+}
+const CHART_COLORS=['#c9a227','#74a98a','#c1604b','#8a93a8','#5c6478','#e3c459','#4f7a64','#8f4636'];
+
+function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
+
+function renderDonut(canvasId, key, entries){
+  const ctx=document.getElementById(canvasId); if(!ctx) return;
+  destroyChart(key);
+  if(!entries.length){ const c=ctx.getContext('2d'); c.clearRect(0,0,ctx.width,ctx.height); return; }
+  charts[key]=new Chart(ctx,{ type:'doughnut', data:{ labels:entries.map(e=>e[0].replace('-',' ')), datasets:[{ data:entries.map(e=>e[1]), backgroundColor:CHART_COLORS, borderColor:'#161b25', borderWidth:2 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:'#9aa3b8', font:{family:'IBM Plex Sans',size:11}, padding:10, boxWidth:10 } } } } });
+}
+
+function renderWeekly(){
+  const txs=getWeekTx(), s=calcStats(txs);
+  document.getElementById('weekly-cards').innerHTML=`
+    <div class="stub"><div class="stub-label">Income</div><div class="stub-val green">${fmt(s.income)}</div></div>
+    <div class="stub"><div class="stub-label">Spent</div><div class="stub-val">${fmt(s.spent)}</div></div>
+    <div class="stub"><div class="stub-label">Invested</div><div class="stub-val brass">${fmt(s.invested)}</div></div>
+    <div class="stub"><div class="stub-label">Cash flow</div><div class="stub-val ${s.cashflow>=0?'green':'red'}">${fmt(s.cashflow,true)}</div></div>`;
+  renderDonut('weekly-chart','weekly',catBreakdown(txs));
+}
+function renderMonthly(){
+  const txs=getMonthTx(), s=calcStats(txs);
+  document.getElementById('monthly-cards').innerHTML=`
+    <div class="stub"><div class="stub-label">Income</div><div class="stub-val green">${fmt(s.income)}</div></div>
+    <div class="stub"><div class="stub-label">Spent</div><div class="stub-val">${fmt(s.spent)}</div></div>
+    <div class="stub"><div class="stub-label">Invested</div><div class="stub-val brass">${fmt(s.invested)}</div></div>
+    <div class="stub"><div class="stub-label">Savings rate</div><div class="stub-val ${s.saverate>=20?'green':'brass'}">${pct(s.saverate)}</div></div>`;
+  renderDonut('monthly-chart','monthly',catBreakdown(txs));
+}
+
+function renderGoals(){
+  const el=document.getElementById('goals-list');
+  if(!state.goals.length){el.innerHTML='<div class="panel"><div class="empty">No goals yet — add one above</div></div>';return;}
+  el.innerHTML=state.goals.map(g=>{ const p=g.target_amount>0?Math.min(100,Math.round((g.current_amount/g.target_amount)*100)):0;
+    return `<div class="goal-item"><div class="goal-header"><span class="goal-name">${g.name}</span><div style="display:flex;gap:8px;align-items:center"><span style="font-family:var(--mono);font-size:12px;color:${p>=100?'var(--sage)':'var(--text-dim)'}">${p}%</span><button class="btn-sm" onclick="deleteGoal('${g.id}')">remove</button></div></div><div class="progress"><div class="progress-fill" style="width:${p}%"></div></div><div class="goal-details"><span>${fmt(g.current_amount)} saved</span><span>${fmt(g.target_amount-g.current_amount)} remaining</span><span>Target: ${fmt(g.target_amount)}</span>${g.target_date?`<span>By ${g.target_date}</span>`:''}</div></div>`; }).join(''); }
+
+function renderForecast(){
+  const base=state.profile, baseIncome=base.income||calcStats(getMonthTx()).income, baseSpend=base.budget||calcStats(getMonthTx()).spent;
+  const baseInv=state.investments.reduce((s,i)=>s+(Number(i.monthly_contribution)||0),0);
+  let nw=state.investments.reduce((s,i)=>s+(Number(i.balance)||0),0);
+  const labels=[],incomes=[],spends=[],saveds=[],nwSeries=[];
+  for(let i=0;i<6;i++){ const d=new Date(now.getFullYear(),now.getMonth()+i,1); labels.push(months[d.getMonth()]+' '+d.getFullYear().toString().slice(2));
+    const inc=baseIncome, spend=baseSpend*(1+i*0.002), saved=inc-spend-baseInv;
+    incomes.push(Math.round(inc)); spends.push(Math.round(spend)); saveds.push(Math.round(saved));
+    nw+=saved+baseInv; nwSeries.push(Math.round(nw)); }
+
+  destroyChart('forecast');
+  const fctx=document.getElementById('forecast-chart');
+  charts.forecast=new Chart(fctx,{ type:'bar', data:{ labels, datasets:[
+      {type:'line',label:'Saved',data:saveds,borderColor:'#c9a227',backgroundColor:'transparent',borderWidth:2,tension:.35,yAxisID:'y',order:0,pointRadius:3,pointBackgroundColor:'#c9a227'},
+      {label:'Income',data:incomes,backgroundColor:'#74a98a55',borderColor:'#74a98a',borderWidth:1,order:1},
+      {label:'Spend',data:spends,backgroundColor:'#c1604b55',borderColor:'#c1604b',borderWidth:1,order:1}
+    ]}, options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ x:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}}, y:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}} },
+      plugins:{ legend:{ position:'top', labels:{color:'#9aa3b8',font:{family:'IBM Plex Sans',size:11}} } } } });
+
+  destroyChart('networth');
+  const nctx=document.getElementById('networth-chart');
+  charts.networth=new Chart(nctx,{ type:'line', data:{ labels, datasets:[{label:'Net worth',data:nwSeries,borderColor:'#c9a227',backgroundColor:'#c9a22722',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#c9a227'}] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ x:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}}, y:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}} },
+      plugins:{ legend:{display:false} } } });
+}
+
+function renderInvList(){
+  const el=document.getElementById('inv-list'); if(!state.investments.length){el.innerHTML='';return;}
+  el.innerHTML=state.investments.map(i=>`<div class="inv-item"><div><div class="inv-name">${i.name}</div><div class="inv-type">${i.type} · ${fmt(i.monthly_contribution||0)}/mo</div></div><div style="text-align:right"><div class="inv-val">${fmt(i.balance)}</div><span class="tx-del" onclick="deleteInv('${i.id}')" style="display:block">remove</span></div></div>`).join(''); }
+
+function renderAiSuggestions(){
+  const s=['How is my savings rate?','Am I on track for my goals?','Where am I overspending?','Suggest ways to invest more'];
+  document.getElementById('ai-suggestions').innerHTML=s.map(q=>`<button class="filter-btn" onclick="document.getElementById('ai-input').value='${q}';sendAI()">${q}</button>`).join('');
+}
+
+async function sendAI(){
+  const input=document.getElementById('ai-input'); const q=input.value.trim(); if(!q) return; input.value='';
+  const stats=calcStats(getMonthTx()), health=calcHealth(stats); const nw=state.investments.reduce((s,i)=>s+(Number(i.balance)||0),0);
+  const context=`Financial snapshot: Income ${fmt(stats.income)}, Spent ${fmt(stats.spent)}, Invested ${fmt(stats.invested)}, Savings rate ${stats.saverate}%, Cash flow ${fmt(stats.cashflow,true)}, Health score ${health}/100, Net worth ${fmt(nw)}. Goals: ${state.goals.length?state.goals.map(g=>`${g.name} (${Math.round((g.current_amount/g.target_amount)*100)}% of ${fmt(g.target_amount)})`).join(', '):'None'}. Setup income: ${fmt(state.profile.income)}, budget: ${fmt(state.profile.budget)}. Question: ${q}`;
+  const systemPrompt = 'You are a concise personal finance advisor. Give practical advice in 2-4 sentences based on the user\'s real data. Use UK English and £.';
+  const chat=document.getElementById('ai-chat');
+  chat.innerHTML+=`<div class="ai-msg user">${q}</div><div class="ai-msg" id="ai-thinking"><span class="spinner"></span>Thinking…</div>`;
+  chat.scrollTop=chat.scrollHeight;
+
+  if(aiProvider==='gemini'){
+    const geminiKey=localStorage.getItem('mycfo_gemini_key')||'';
+    if(!geminiKey){ document.getElementById('ai-thinking').remove(); chat.innerHTML+=`<div class="ai-msg red">Please add your Gemini API key in Setup → AI Settings to use this feature.</div>`; chat.scrollTop=chat.scrollHeight; return; }
+    try{
+      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,{
+        method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':geminiKey},
+        body:JSON.stringify({ system_instruction:{parts:[{text:systemPrompt}]}, contents:[{role:'user',parts:[{text:context}]}] })
+      });
+      const data=await res.json();
+      if(data.error){ throw new Error(data.error.message||'Gemini API error'); }
+      const reply=data.candidates?.[0]?.content?.parts?.[0]?.text||'Sorry, could not get a response.';
+      document.getElementById('ai-thinking').remove(); chat.innerHTML+=`<div class="ai-msg">${reply}</div>`;
+    }catch(e){ document.getElementById('ai-thinking')?.remove(); chat.innerHTML+=`<div class="ai-msg red">Error: ${e.message}</div>`; }
+    chat.scrollTop=chat.scrollHeight;
+    return;
+  }
+
+  const anthropicKey=localStorage.getItem('mycfo_anthropic_key')||'';
+  if(!anthropicKey){ document.getElementById('ai-thinking').remove(); chat.innerHTML+=`<div class="ai-msg red">Please add your Anthropic API key in Setup → AI Settings to use this feature.</div>`; chat.scrollTop=chat.scrollHeight; return; }
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:systemPrompt,messages:[{role:'user',content:context}]})});
+    const data=await res.json();
+    if(data.error){ throw new Error(data.error.message||'API error'); }
+    const reply=data.content?.[0]?.text||'Sorry, could not get a response.';
+    document.getElementById('ai-thinking').remove(); chat.innerHTML+=`<div class="ai-msg">${reply}</div>`;
+  }catch(e){ document.getElementById('ai-thinking')?.remove(); chat.innerHTML+=`<div class="ai-msg red">Error: ${e.message}</div>`; }
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function showOnboard(step=1){
+  document.getElementById('main-app').style.display='none'; document.getElementById('onboard-screen').style.display='block';
+  ['step1','step2','step3'].forEach((s,i)=>{ document.getElementById(s).style.display=i+1===step?'block':'none'; });
+  ['dot1','dot2','dot3'].forEach((d,i)=>{ document.getElementById(d).classList.toggle('active',i+1===step); });
+}
+document.getElementById('ob-next1').addEventListener('click', async ()=>{
+  const url=document.getElementById('ob-url').value.trim().replace(/\/$/,''); const key=document.getElementById('ob-key').value.trim();
+  if(!url||!key){ alert('Please enter your Supabase URL and anon key.'); return; }
+  SUPABASE_URL=url; SUPABASE_KEY=key; const btn=document.getElementById('ob-next1'); btn.textContent='Testing connection…'; btn.disabled=true;
+  try{ const r=await fetch(`${url}/rest/v1/cfo_profile?limit=1`,{headers:{'apikey':key,'Authorization':'Bearer '+key}}); if(!r.ok) throw new Error('Connection failed — check URL and key.');
+    localStorage.setItem('mycfo_url',url); localStorage.setItem('mycfo_key',key); showOnboard(2);
+  }catch(e){ alert(e.message); } btn.textContent='Connect →'; btn.disabled=false;
+});
+document.getElementById('ob-next2').addEventListener('click', async ()=>{
+  const p={ id:1, income:parseFloat(document.getElementById('ob-income').value)||0, save_target:parseFloat(document.getElementById('ob-savetarget').value)||0, budget:parseFloat(document.getElementById('ob-budget').value)||0, currency:document.getElementById('ob-currency').value||'£' };
+  try{ await sbUpsert('cfo_profile',p); state.profile=p; }catch(e){} showOnboard(3);
+});
+document.getElementById('ob-done').addEventListener('click',()=>startApp());
+document.getElementById('change-db-btn').addEventListener('click',()=>showOnboard(1));
+
+function setActiveTab(tabName){
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tabName));
+  document.querySelectorAll('#bottomnav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tabName));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+tabName));
+  renderAll();
+}
+document.querySelectorAll('#nav button, #bottomnav button').forEach(btn=>{ btn.addEventListener('click',()=>setActiveTab(btn.dataset.tab)); });
+
+document.getElementById('add-tx-btn').addEventListener('click',addTransaction);
+document.getElementById('add-goal-btn').addEventListener('click',addGoal);
+document.getElementById('add-inv-btn').addEventListener('click',addInvestment);
+document.getElementById('save-profile-btn').addEventListener('click',saveProfile);
+document.getElementById('ai-send').addEventListener('click',sendAI);
+document.getElementById('ai-input').addEventListener('keydown',e=>{ if(e.key==='Enter') sendAI(); });
+document.getElementById('save-ai-key-btn').addEventListener('click',()=>{
+  const key=document.getElementById('s-anthropic-key').value.trim();
+  if(!key){ document.getElementById('ai-key-status').innerHTML='<span class="red">Please enter a key</span>'; return; }
+  localStorage.setItem('mycfo_anthropic_key',key); document.getElementById('ai-key-status').innerHTML='<span class="green">✓ Claude key saved!</span>';
+});
+document.getElementById('save-gemini-key-btn').addEventListener('click',()=>{
+  const key=document.getElementById('s-gemini-key').value.trim();
+  if(!key){ document.getElementById('gemini-key-status').innerHTML='<span class="red">Please enter a key</span>'; return; }
+  localStorage.setItem('mycfo_gemini_key',key); document.getElementById('gemini-key-status').innerHTML='<span class="green">✓ Gemini key saved!</span>';
+});
+let aiProvider = localStorage.getItem('mycfo_ai_provider') || 'claude';
+function setProvider(p){
+  aiProvider = p; localStorage.setItem('mycfo_ai_provider',p);
+  document.getElementById('provider-claude').classList.toggle('active',p==='claude');
+  document.getElementById('provider-gemini').classList.toggle('active',p==='gemini');
+  document.getElementById('ai-provider-tag').textContent = p==='claude' ? 'Powered by Claude' : 'Powered by Gemini';
+}
+document.getElementById('provider-claude').addEventListener('click',()=>setProvider('claude'));
+document.getElementById('provider-gemini').addEventListener('click',()=>setProvider('gemini'));
+setProvider(aiProvider);
+document.getElementById('export-csv-btn').addEventListener('click', exportCSV);
+document.getElementById('export-excel-btn').addEventListener('click', exportExcel);
+document.getElementById('reset-btn').addEventListener('click', async ()=>{
+  if(!confirm('This will delete ALL your transactions, goals, and investments. Are you sure?')) return;
+  setSyncStatus('loading','resetting…');
+  try{
+    await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/cfo_transactions?id=gt.0`,{method:'DELETE',headers:sbHeaders()}),
+      fetch(`${SUPABASE_URL}/rest/v1/cfo_goals?id=gt.0`,{method:'DELETE',headers:sbHeaders()}),
+      fetch(`${SUPABASE_URL}/rest/v1/cfo_investments?id=gt.0`,{method:'DELETE',headers:sbHeaders()})
+    ]);
+    state.transactions=[]; state.goals=[]; state.investments=[]; setSyncStatus('ok','reset'); renderAll();
+  }catch(e){ setSyncStatus('err','error'); }
+});
+
+document.querySelectorAll('#dl-filters .filter-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ document.querySelectorAll('#dl-filters .filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTxList(); }); });
+
+document.getElementById('tx-cat').addEventListener('change',e=>{
+  const sc=document.getElementById('tx-subcat'), v=e.target.value;
+  const groups={income:['salary','freelance','other-income'],investment:['stocks','pension','crypto','property','other-inv']};
+  const exp=['housing','food','transport','bills','health','entertainment','shopping','dining','other-expense'];
+  sc.querySelectorAll('option').forEach(o=>{ const show=v==='income'?groups.income.includes(o.value):v==='investment'?groups.investment.includes(o.value):exp.includes(o.value); o.style.display=show?'':'none'; });
+  if(v==='income') sc.value='salary'; else if(v==='investment') sc.value='stocks'; else sc.value='housing';
+});
+
+function exportCSV(){
+  if(!state.transactions.length){ alert('No transactions to export yet.'); return; }
+  const headers=['Date','Description','Category','Sub-category','Amount','Note'];
+  const rows=state.transactions.map(t=>[t.date,'"'+(t.description||t.desc||'').replace(/"/g,'""')+'"',t.category,t.subcat||'',(t.category==='expense'?'-':'')+t.amount,'"'+(t.note||'').replace(/"/g,'""')+'"']);
+  const csv=[headers.join(','),...rows.map(r=>r.join(','))].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='mycfo-transactions.csv'; a.click(); URL.revokeObjectURL(url);
+}
+function exportExcel(){
+  const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cell=(v,type='String')=> type==='Number'?`<Cell><Data ss:Type="Number">${esc(v)}</Data></Cell>`:`<Cell><Data ss:Type="String">${esc(v)}</Data></Cell>`;
+  const hCell=v=>`<Cell ss:StyleID="header"><Data ss:Type="String">${esc(v)}</Data></Cell>`; const row=cells=>`<Row>${cells}</Row>`;
+  let txRows=row([hCell('Date'),hCell('Description'),hCell('Category'),hCell('Sub-category'),hCell('Amount'),hCell('Note')].join(''));
+  state.transactions.forEach(t=>{ const amt=t.category==='expense'?-t.amount:t.amount; txRows+=row([cell(t.date),cell(t.description||t.desc),cell(t.category),cell(t.subcat),cell(amt,'Number'),cell(t.note)].join('')); });
+  let goalRows=row([hCell('Goal'),hCell('Target'),hCell('Saved'),hCell('Remaining'),hCell('% Complete'),hCell('Target Date')].join(''));
+  state.goals.forEach(g=>{ const p=g.target_amount>0?Math.round((g.current_amount/g.target_amount)*100):0; goalRows+=row([cell(g.name),cell(g.target_amount,'Number'),cell(g.current_amount,'Number'),cell(g.target_amount-g.current_amount,'Number'),cell(p,'Number'),cell(g.target_date||'')].join('')); });
+  let invRows=row([hCell('Account'),hCell('Type'),hCell('Balance'),hCell('Monthly Contribution')].join(''));
+  state.investments.forEach(i=>{ invRows+=row([cell(i.name),cell(i.type),cell(i.balance,'Number'),cell(i.monthly_contribution||0,'Number')].join('')); });
+  const xml=`<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="header"><Font ss:Bold="1"/><Interior ss:Color="#1a1a1a" ss:Pattern="Solid"/></Style></Styles><Worksheet ss:Name="Transactions"><Table>${txRows}</Table></Worksheet><Worksheet ss:Name="Goals"><Table>${goalRows}</Table></Worksheet><Worksheet ss:Name="Investments"><Table>${invRows}</Table></Worksheet></Workbook>`;
+  const blob=new Blob([xml],{type:'application/vnd.ms-excel'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); const date=new Date().toISOString().split('T')[0];
+  a.href=url; a.download=`mycfo-export-${date}.xls`; a.click(); URL.revokeObjectURL(url);
+}
+
+function startApp(){
+  document.getElementById('onboard-screen').style.display='none'; document.getElementById('main-app').style.display='block';
+  document.getElementById('topdate').textContent=now.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('tx-date').value=now.toISOString().split('T')[0];
+  loadSetupFields(); loadAll();
+}
+if(SUPABASE_URL && SUPABASE_KEY){ startApp(); } else { showOnboard(1); }
+</script>
+</body>
+</html>
