@@ -128,6 +128,14 @@ label{font-size:11px;color:var(--text-faint);display:block;margin-bottom:4px;tex
 .inv-type{font-size:11px;color:var(--text-faint);margin-top:2px;font-family:var(--mono)}
 .inv-val{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--sage);text-align:right}
 
+.envelope{background:var(--ink3);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:9px}
+.envelope-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.envelope-name{font-family:var(--serif);font-size:15px;font-weight:600}
+.envelope-remaining{font-family:var(--mono);font-size:13px;font-weight:600}
+.envelope-bar{background:var(--ink4);border-radius:5px;height:8px;overflow:hidden;margin-bottom:7px}
+.envelope-fill{height:100%;border-radius:5px;transition:width .5s}
+.envelope-footer{display:flex;justify-content:space-between;font-size:11px;color:var(--text-faint);font-family:var(--mono)}
+
 .chart-box{position:relative;height:230px;margin-top:6px}
 .chart-box-tall{height:280px}
 
@@ -215,6 +223,7 @@ a{color:var(--brass-soft)}
       <button data-tab="weekly">Weekly</button>
       <button data-tab="monthly">Monthly</button>
       <button data-tab="expenses">Expenses</button>
+      <button data-tab="budgets">Budgets</button>
       <button data-tab="goals">Goals</button>
       <button data-tab="forecast">Forecast</button>
       <button data-tab="ai">AI advisor</button>
@@ -237,6 +246,7 @@ a{color:var(--brass-soft)}
           <div class="gauge-meta-row"><span class="gauge-meta-label">Net worth</span><span class="gauge-meta-val" id="ov-networth">—</span></div>
           <div class="gauge-meta-row"><span class="gauge-meta-label">Cash flow this month</span><span class="gauge-meta-val" id="ov-cashflow">—</span></div>
           <div class="gauge-meta-row"><span class="gauge-meta-label">Total cash flow (all time)</span><span class="gauge-meta-val" id="ov-cashflow-total">—</span></div>
+          <div class="gauge-meta-row"><span class="gauge-meta-label">Unallocated income</span><span class="gauge-meta-val" id="ov-unallocated">—</span></div>
         </div>
       </div>
 
@@ -270,8 +280,10 @@ a{color:var(--brass-soft)}
           <div><label>Sub-category</label>
             <select id="tx-subcat">
               <option value="salary">Salary</option><option value="freelance">Freelance / business</option><option value="other-income">Other income</option>
-              <option value="housing">Housing</option><option value="food">Food & groceries</option><option value="transport">Transport</option>
-              <option value="bills">Bills & utilities</option><option value="health">Health</option><option value="entertainment">Entertainment</option>
+              <option value="rent">Rent</option><option value="council-tax">Council tax</option><option value="electric">Electric bill</option><option value="wifi">WiFi bill</option>
+              <option value="groceries">Groceries</option><option value="petrol">Petrol</option>
+              <option value="housing">Housing (other)</option><option value="food">Food & dining out</option><option value="transport">Transport (other)</option>
+              <option value="bills">Other bills</option><option value="health">Health</option><option value="entertainment">Entertainment</option>
               <option value="shopping">Shopping</option><option value="dining">Dining out</option><option value="other-expense">Other expense</option>
               <option value="stocks">Stocks / ETFs</option><option value="pension">Pension</option><option value="crypto">Crypto</option>
               <option value="property">Property</option><option value="other-inv">Other investment</option>
@@ -333,6 +345,33 @@ a{color:var(--brass-soft)}
             </tr></tfoot>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- BUDGETS (envelope budgeting) -->
+    <div class="tab" id="tab-budgets">
+      <div class="setup-section">
+        <h3>Add budget envelope</h3>
+        <div class="form-row">
+          <div><label>Name</label><input id="budget-name" placeholder="e.g. Rent, Groceries, Petrol"></div>
+          <div><label>Monthly amount (£)</label><input id="budget-amount" type="number" placeholder="500"></div>
+        </div>
+        <label>Category (matches your logged transactions)</label>
+        <select id="budget-subcat">
+          <option value="rent">Rent</option><option value="council-tax">Council tax</option><option value="electric">Electric bill</option><option value="wifi">WiFi bill</option>
+          <option value="groceries">Groceries</option><option value="petrol">Petrol</option>
+          <option value="housing">Housing (other)</option><option value="food">Food & dining out</option><option value="transport">Transport (other)</option>
+          <option value="bills">Other bills</option><option value="health">Health</option><option value="entertainment">Entertainment</option>
+          <option value="shopping">Shopping</option><option value="dining">Dining out</option><option value="other-expense">Other expense</option>
+        </select>
+        <button class="btn" id="add-budget-btn">Add envelope</button>
+      </div>
+      <div class="panel" style="margin-bottom:14px">
+        <h3>This month's envelopes</h3>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+          <span class="muted">Total budgeted</span><span id="budgets-total" style="font-family:var(--mono);font-weight:600">£0</span>
+        </div>
+        <div id="budgets-list"></div>
       </div>
     </div>
 
@@ -457,7 +496,7 @@ a{color:var(--brass-soft)}
 let SUPABASE_URL = localStorage.getItem('mycfo_url')||'';
 let SUPABASE_KEY = localStorage.getItem('mycfo_key')||'';
 let pendingDeleteId = null;
-let state = { profile:{income:0,saveTarget:0,budget:0,currency:'£'}, transactions:[], goals:[], investments:[], aiChat:[] };
+let state = { profile:{income:0,saveTarget:0,budget:0,currency:'£'}, transactions:[], goals:[], investments:[], budgets:[], aiChat:[] };
 let charts = {};
 
 const sbHeaders = ()=>({'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation'});
@@ -475,6 +514,7 @@ async function loadAll(){
     const [profileRows, txRows, goalRows, invRows] = await Promise.all([sbGet('cfo_profile'),sbGet('cfo_transactions'),sbGet('cfo_goals'),sbGet('cfo_investments')]);
     if(profileRows.length) state.profile = profileRows[0];
     state.transactions = txRows; state.goals = goalRows; state.investments = invRows;
+    try{ state.budgets = await sbGet('cfo_budgets'); }catch(e){ state.budgets = []; console.warn('cfo_budgets table not found yet — run the new SQL in Supabase.'); }
     setSyncStatus('ok','synced');
     loadSetupFields(); renderAll();
   }catch(e){ setSyncStatus('err','offline'); console.error(e); }
@@ -536,6 +576,47 @@ async function addGoal(){
 }
 async function deleteGoal(id){ if(!confirm('Remove this goal?')) return; setSyncStatus('loading','saving…'); try{ await sbDelete('cfo_goals',id); state.goals=state.goals.filter(g=>g.id!==id); setSyncStatus('ok','synced'); renderAll(); }catch(e){ setSyncStatus('err','error'); } }
 
+async function addBudget(){
+  const name=document.getElementById('budget-name').value.trim();
+  const amount=parseFloat(document.getElementById('budget-amount').value)||0;
+  const subcat=document.getElementById('budget-subcat').value;
+  if(!name||amount<=0){ alert('Please enter a name and a positive monthly amount.'); return; }
+  setSyncStatus('loading','saving…');
+  try{
+    const rows=await sbInsert('cfo_budgets',{name,subcat,monthly_amount:amount});
+    state.budgets.push(rows[0]); setSyncStatus('ok','synced');
+    document.getElementById('budget-name').value=''; document.getElementById('budget-amount').value=''; renderAll();
+  }catch(e){ setSyncStatus('err','error'); alert('Could not save — have you run the new cfo_budgets SQL in Supabase yet?'); }
+}
+async function deleteBudget(id){ if(!confirm('Remove this budget envelope?')) return; setSyncStatus('loading','saving…'); try{ await sbDelete('cfo_budgets',id); state.budgets=state.budgets.filter(b=>b.id!==id); setSyncStatus('ok','synced'); renderAll(); }catch(e){ setSyncStatus('err','error'); } }
+
+function renderBudgets(){
+  const el=document.getElementById('budgets-list'); if(!el) return;
+  const monthTxs=getMonthTx();
+  const totalBudgeted=state.budgets.reduce((s,b)=>s+Number(b.monthly_amount),0);
+  document.getElementById('budgets-total').textContent=fmt(totalBudgeted);
+  if(!state.budgets.length){ el.innerHTML='<div class="empty">Add your first envelope above — e.g. Rent £870, Groceries £500</div>'; return; }
+  el.innerHTML=state.budgets.map(b=>{
+    const spent=monthTxs.filter(t=>t.category==='expense'&&t.subcat===b.subcat).reduce((s,t)=>s+Number(t.amount),0);
+    const remaining=Number(b.monthly_amount)-spent;
+    const pct_=Math.min(100,Math.round((spent/Number(b.monthly_amount))*100));
+    const over=remaining<0;
+    const color=over?'var(--rust)':pct_>=85?'var(--brass)':'var(--sage)';
+    return `<div class="envelope">
+      <div class="envelope-header">
+        <span class="envelope-name">${b.name}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="envelope-remaining" style="color:${color}">${over?'Over by '+fmt(Math.abs(remaining)):fmt(remaining)+' left'}</span>
+          <button class="btn-sm" onclick="deleteBudget('${b.id}')">remove</button>
+        </div>
+      </div>
+      <div class="envelope-bar"><div class="envelope-fill" style="width:${pct_}%;background:${color}"></div></div>
+      <div class="envelope-footer"><span>${fmt(spent)} spent</span><span>Budget: ${fmt(b.monthly_amount)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+
 async function addInvestment(){
   const name=document.getElementById('inv-name').value.trim(); const balance=parseFloat(document.getElementById('inv-bal').value)||0;
   if(!name){ alert('Please enter an account name.'); return; }
@@ -577,6 +658,10 @@ function renderAll(){
   document.getElementById('ov-networth').textContent=fmt(networth);
   document.getElementById('ov-cashflow').textContent=fmt(stats.cashflow,true);
   document.getElementById('ov-cashflow-total').textContent=fmt(lifetimeStats.cashflow,true);
+  const totalBudgeted=state.budgets.reduce((s,b)=>s+Number(b.monthly_amount),0);
+  const unallocated=(state.profile.income||0)-totalBudgeted;
+  document.getElementById('ov-unallocated').textContent=fmt(unallocated,true);
+  document.getElementById('ov-unallocated').className='gauge-meta-val '+(unallocated>=0?'green':'red');
   document.getElementById('ov-income').textContent=fmt(stats.income);
   document.getElementById('ov-spent').textContent=fmt(stats.spent);
   document.getElementById('ov-invested').textContent=fmt(stats.invested);
@@ -585,7 +670,7 @@ function renderAll(){
   renderOvInv(); renderOvGoals(); renderTxList();
   renderWeekly(); renderMonthly(); renderGoals();
   renderForecast(); renderInvList(); renderAiSuggestions();
-  renderExpensesTab();
+  renderExpensesTab(); renderBudgets();
 }
 
 function renderOvInv(){ const el=document.getElementById('ov-investments'); if(!state.investments.length){el.innerHTML='<div class="empty">Add accounts in Setup</div>';return;}
@@ -827,6 +912,7 @@ document.querySelectorAll('#nav button, #bottomnav button').forEach(btn=>{ btn.a
 
 document.getElementById('add-tx-btn').addEventListener('click',addTransaction);
 document.getElementById('add-goal-btn').addEventListener('click',addGoal);
+document.getElementById('add-budget-btn').addEventListener('click',addBudget);
 document.getElementById('add-inv-btn').addEventListener('click',addInvestment);
 document.getElementById('save-profile-btn').addEventListener('click',saveProfile);
 document.getElementById('ai-send').addEventListener('click',sendAI);
@@ -871,7 +957,7 @@ document.querySelectorAll('#dl-filters .filter-btn').forEach(btn=>{ btn.addEvent
 document.getElementById('tx-cat').addEventListener('change',e=>{
   const sc=document.getElementById('tx-subcat'), v=e.target.value;
   const groups={income:['salary','freelance','other-income'],investment:['stocks','pension','crypto','property','other-inv']};
-  const exp=['housing','food','transport','bills','health','entertainment','shopping','dining','other-expense'];
+  const exp=['rent','council-tax','electric','wifi','groceries','petrol','housing','food','transport','bills','health','entertainment','shopping','dining','other-expense'];
   sc.querySelectorAll('option').forEach(o=>{ const show=v==='income'?groups.income.includes(o.value):v==='investment'?groups.investment.includes(o.value):exp.includes(o.value); o.style.display=show?'':'none'; });
   if(v==='income') sc.value='salary'; else if(v==='investment') sc.value='stocks'; else sc.value='housing';
 });
