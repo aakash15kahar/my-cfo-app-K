@@ -214,6 +214,7 @@ a{color:var(--brass-soft)}
       <button data-tab="dailylog">Daily log</button>
       <button data-tab="weekly">Weekly</button>
       <button data-tab="monthly">Monthly</button>
+      <button data-tab="expenses">Expenses</button>
       <button data-tab="goals">Goals</button>
       <button data-tab="forecast">Forecast</button>
       <button data-tab="ai">AI advisor</button>
@@ -235,6 +236,7 @@ a{color:var(--brass-soft)}
           <div class="gauge-meta-row"><span class="gauge-meta-label">Savings rate</span><span class="gauge-meta-val" id="ov-saverate">—</span></div>
           <div class="gauge-meta-row"><span class="gauge-meta-label">Net worth</span><span class="gauge-meta-val" id="ov-networth">—</span></div>
           <div class="gauge-meta-row"><span class="gauge-meta-label">Cash flow this month</span><span class="gauge-meta-val" id="ov-cashflow">—</span></div>
+          <div class="gauge-meta-row"><span class="gauge-meta-label">Total cash flow (all time)</span><span class="gauge-meta-val" id="ov-cashflow-total">—</span></div>
         </div>
       </div>
 
@@ -304,6 +306,34 @@ a{color:var(--brass-soft)}
     <div class="tab" id="tab-monthly">
       <div class="stub-grid" id="monthly-cards"></div>
       <div class="panel"><h3>Spending by category</h3><div class="chart-box"><canvas id="monthly-chart"></canvas></div></div>
+    </div>
+
+    <!-- EXPENSES (detailed) -->
+    <div class="tab" id="tab-expenses">
+      <div class="stub-grid" id="expenses-cards"></div>
+      <div class="grid2">
+        <div class="panel"><h3>Spending by category</h3><div class="chart-box"><canvas id="expenses-cat-chart"></canvas></div></div>
+        <div class="panel"><h3>Monthly trend (last 6 months)</h3><div class="chart-box"><canvas id="expenses-trend-chart"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="section-head"><h3>All expenses</h3><span style="font-size:11px;color:var(--text-faint);font-family:var(--mono)" id="exp-count">0 entries</span></div>
+        <div class="filter-row" id="exp-filters"><button class="filter-btn active" data-excat="all">All categories</button></div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr style="border-bottom:1px solid var(--line);text-align:left">
+              <th style="padding:8px 6px;color:var(--text-faint);font-family:var(--mono);font-size:11px;text-transform:uppercase">Date</th>
+              <th style="padding:8px 6px;color:var(--text-faint);font-family:var(--mono);font-size:11px;text-transform:uppercase">Description</th>
+              <th style="padding:8px 6px;color:var(--text-faint);font-family:var(--mono);font-size:11px;text-transform:uppercase">Category</th>
+              <th style="padding:8px 6px;color:var(--text-faint);font-family:var(--mono);font-size:11px;text-transform:uppercase;text-align:right">Amount</th>
+            </tr></thead>
+            <tbody id="expenses-table-body"></tbody>
+            <tfoot><tr style="border-top:1px solid var(--line)">
+              <td colspan="3" style="padding:10px 6px;font-family:var(--serif);font-weight:600">Total</td>
+              <td id="expenses-table-total" style="padding:10px 6px;text-align:right;font-family:var(--mono);font-weight:600;color:var(--rust)">£0</td>
+            </tr></tfoot>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- GOALS -->
@@ -541,10 +571,12 @@ function renderGauge(score){
 function renderAll(){
   const mTx=getMonthTx(), stats=calcStats(mTx), health=calcHealth(stats);
   const networth=state.investments.reduce((s,i)=>s+(Number(i.balance)||0),0);
+  const lifetimeStats=calcStats(state.transactions);
   renderGauge(health);
   document.getElementById('ov-saverate').textContent=pct(stats.saverate);
   document.getElementById('ov-networth').textContent=fmt(networth);
   document.getElementById('ov-cashflow').textContent=fmt(stats.cashflow,true);
+  document.getElementById('ov-cashflow-total').textContent=fmt(lifetimeStats.cashflow,true);
   document.getElementById('ov-income').textContent=fmt(stats.income);
   document.getElementById('ov-spent').textContent=fmt(stats.spent);
   document.getElementById('ov-invested').textContent=fmt(stats.invested);
@@ -553,6 +585,7 @@ function renderAll(){
   renderOvInv(); renderOvGoals(); renderTxList();
   renderWeekly(); renderMonthly(); renderGoals();
   renderForecast(); renderInvList(); renderAiSuggestions();
+  renderExpensesTab();
 }
 
 function renderOvInv(){ const el=document.getElementById('ov-investments'); if(!state.investments.length){el.innerHTML='<div class="empty">Add accounts in Setup</div>';return;}
@@ -604,6 +637,83 @@ function renderMonthly(){
     <div class="stub"><div class="stub-label">Invested</div><div class="stub-val brass">${fmt(s.invested)}</div></div>
     <div class="stub"><div class="stub-label">Savings rate</div><div class="stub-val ${s.saverate>=20?'green':'brass'}">${pct(s.saverate)}</div></div>`;
   renderDonut('monthly-chart','monthly',catBreakdown(txs));
+}
+
+// ─── EXPENSES TAB (detailed) ──────────────────────────────────
+let expCatFilter = 'all';
+
+function getAllExpenses(){ return state.transactions.filter(t=>t.category==='expense'); }
+
+function getMonthlyExpenseTrend(months=6){
+  const labels=[], totals=[];
+  for(let i=months-1;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const yr=d.getFullYear(), mo=d.getMonth();
+    const total=getAllExpenses().filter(t=>{ const td=new Date(t.date); return td.getFullYear()===yr&&td.getMonth()===mo; }).reduce((s,t)=>s+Number(t.amount),0);
+    labels.push(months_[mo]+' '+yr.toString().slice(2)); totals.push(Math.round(total));
+  }
+  return {labels,totals};
+}
+const months_=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function renderExpensesTab(){
+  const allExp=getAllExpenses();
+  const thisMonthExp=getMonthTx().filter(t=>t.category==='expense').reduce((s,t)=>s+Number(t.amount),0);
+  const lifetimeTotal=allExp.reduce((s,t)=>s+Number(t.amount),0);
+  const monthsSpan=Math.max(1, new Set(allExp.map(t=>t.date.slice(0,7))).size);
+  const avgPerMonth=lifetimeTotal/monthsSpan;
+  const catTotals=catBreakdown(allExp);
+  const topCat=catTotals.length?catTotals[0][0].replace('-',' '):'—';
+
+  document.getElementById('expenses-cards').innerHTML=`
+    <div class="stub"><div class="stub-label">Total expenses (all time)</div><div class="stub-val red">${fmt(lifetimeTotal)}</div></div>
+    <div class="stub"><div class="stub-label">This month</div><div class="stub-val">${fmt(thisMonthExp)}</div></div>
+    <div class="stub"><div class="stub-label">Avg per month</div><div class="stub-val brass">${fmt(avgPerMonth)}</div></div>
+    <div class="stub"><div class="stub-label">Top category</div><div class="stub-val" style="font-size:17px;text-transform:capitalize">${topCat}</div></div>`;
+
+  // Category bar chart
+  destroyChart('expCat');
+  const ctx=document.getElementById('expenses-cat-chart');
+  if(ctx){
+    if(!catTotals.length){ ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height); }
+    else{
+      charts.expCat=new Chart(ctx,{ type:'bar', data:{ labels:catTotals.map(e=>e[0].replace('-',' ')), datasets:[{ data:catTotals.map(e=>e[1]), backgroundColor:'#c1604b88', borderColor:'#c1604b', borderWidth:1, borderRadius:4 }] },
+        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+          scales:{ x:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}}, y:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Sans',size:11}},grid:{display:false}} } } });
+    }
+  }
+
+  // Trend line chart (last 6 months actual)
+  destroyChart('expTrend');
+  const trend=getMonthlyExpenseTrend(6);
+  const tctx=document.getElementById('expenses-trend-chart');
+  if(tctx){
+    charts.expTrend=new Chart(tctx,{ type:'line', data:{ labels:trend.labels, datasets:[{label:'Expenses',data:trend.totals,borderColor:'#c1604b',backgroundColor:'#c1604b22',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#c1604b'}] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+        scales:{ x:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}}, y:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}} } } });
+  }
+
+  // Category filter pills
+  const filterEl=document.getElementById('exp-filters');
+  const cats=['all',...catTotals.map(e=>e[0])];
+  filterEl.innerHTML=cats.map(c=>`<button class="filter-btn ${c===expCatFilter?'active':''}" data-excat="${c}">${c==='all'?'All categories':c.replace('-',' ')}</button>`).join('');
+  filterEl.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ expCatFilter=b.dataset.excat; renderExpensesTab(); }));
+
+  // Table
+  const filtered=(expCatFilter==='all'?allExp:allExp.filter(t=>t.subcat===expCatFilter)).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('exp-count').textContent=filtered.length+' entr'+(filtered.length===1?'y':'ies');
+  const tbody=document.getElementById('expenses-table-body');
+  if(!filtered.length){ tbody.innerHTML=`<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--text-faint);font-style:italic">No expenses yet</td></tr>`; }
+  else{
+    tbody.innerHTML=filtered.map(t=>`<tr style="border-bottom:1px solid var(--line-soft)">
+      <td style="padding:8px 6px;font-family:var(--mono);font-size:12px;color:var(--text-dim)">${t.date}</td>
+      <td style="padding:8px 6px">${t.description||t.desc||''}</td>
+      <td style="padding:8px 6px;font-family:var(--mono);font-size:12px;color:var(--text-faint);text-transform:capitalize">${(t.subcat||'').replace('-',' ')}</td>
+      <td style="padding:8px 6px;text-align:right;font-family:var(--mono);color:var(--rust)">${fmt(t.amount)}</td>
+    </tr>`).join('');
+  }
+  const filteredTotal=filtered.reduce((s,t)=>s+Number(t.amount),0);
+  document.getElementById('expenses-table-total').textContent=fmt(filteredTotal);
 }
 
 function renderGoals(){
