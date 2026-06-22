@@ -540,17 +540,61 @@ function loadSetupFields(){
   document.getElementById('db-url-display').textContent = url? url+'…supabase.co':'—';
 }
 
+let editingTxId = null;
+
 async function addTransaction(){
   const desc=document.getElementById('tx-desc').value.trim(); const amt=parseFloat(document.getElementById('tx-amt').value);
   if(!desc||!amt||amt<=0){ alert('Please fill in description and a positive amount.'); return; }
   const tx={ description:desc, amount:amt, category:document.getElementById('tx-cat').value, subcat:document.getElementById('tx-subcat').value, date:document.getElementById('tx-date').value, note:document.getElementById('tx-note').value.trim() };
-  const btn=document.getElementById('add-tx-btn'); btn.disabled=true; btn.textContent='Adding…';
+  const btn=document.getElementById('add-tx-btn');
   setSyncStatus('loading','saving…');
+
+  if(editingTxId){
+    btn.disabled=true; btn.textContent='Updating…';
+    try{
+      await sbUpdate('cfo_transactions',editingTxId,tx);
+      const idx=state.transactions.findIndex(t=>t.id===editingTxId);
+      if(idx>-1) state.transactions[idx]={...state.transactions[idx],...tx};
+      setSyncStatus('ok','synced'); cancelEditTx(); renderAll();
+    }catch(e){ setSyncStatus('err','error'); alert('Could not update: '+e.message); }
+    btn.disabled=false;
+    return;
+  }
+
+  btn.disabled=true; btn.textContent='Adding…';
   try{
     const rows=await sbInsert('cfo_transactions',tx); state.transactions.unshift(rows[0]); setSyncStatus('ok','synced');
     document.getElementById('tx-desc').value=''; document.getElementById('tx-amt').value=''; document.getElementById('tx-note').value=''; renderAll();
   }catch(e){ setSyncStatus('err','error'); alert('Could not save: '+e.message); }
   btn.disabled=false; btn.textContent='Add transaction';
+}
+
+function startEditTx(id){
+  const t=state.transactions.find(x=>x.id===id || String(x.id)===String(id)); if(!t) return;
+  editingTxId=t.id;
+  document.getElementById('tx-desc').value=t.description||t.desc||'';
+  document.getElementById('tx-amt').value=t.amount;
+  document.getElementById('tx-cat').value=t.category;
+  document.getElementById('tx-cat').dispatchEvent(new Event('change'));
+  document.getElementById('tx-subcat').value=t.subcat||'';
+  document.getElementById('tx-date').value=t.date;
+  document.getElementById('tx-note').value=t.note||'';
+  const btn=document.getElementById('add-tx-btn');
+  btn.textContent='Update transaction'; btn.style.background='var(--brass-soft)';
+  if(!document.getElementById('cancel-edit-btn')){
+    const cancelBtn=document.createElement('button');
+    cancelBtn.id='cancel-edit-btn'; cancelBtn.className='btn-outline'; cancelBtn.style.marginTop='8px'; cancelBtn.textContent='Cancel edit';
+    cancelBtn.onclick=cancelEditTx;
+    btn.parentNode.insertBefore(cancelBtn, btn.nextSibling);
+  }
+  document.querySelector('[data-tab="dailylog"]').click();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function cancelEditTx(){
+  editingTxId=null;
+  document.getElementById('tx-desc').value=''; document.getElementById('tx-amt').value=''; document.getElementById('tx-note').value='';
+  const btn=document.getElementById('add-tx-btn'); btn.textContent='Add transaction'; btn.style.background='';
+  document.getElementById('cancel-edit-btn')?.remove();
 }
 
 function confirmDelete(id,desc,amt){ pendingDeleteId=id; document.getElementById('delete-modal-desc').textContent=`Delete "${desc}" (${fmt(amt)})?`; document.getElementById('delete-modal').style.display='flex'; }
@@ -687,7 +731,7 @@ function renderTxList(){
   document.getElementById('tx-count').textContent=txs.length+' entr'+(txs.length===1?'y':'ies');
   if(!txs.length){el.innerHTML='<div class="empty">No transactions yet</div>';return;}
   el.innerHTML=txs.map(t=>{ const col=t.category==='income'?'green':t.category==='investment'?'brass':''; const sign=t.category==='income'?'+':'-';
-    return `<div class="tx-item"><div><div class="tx-desc">${t.description||t.desc||''}</div><div class="tx-meta">${t.date}${t.subcat?' · '+t.subcat:''}${t.note?' · '+t.note:''}</div></div><div style="text-align:right"><div class="tx-amt ${col}">${sign}${fmt(t.amount)}</div><span class="tx-del" onclick="confirmDelete('${t.id}','${(t.description||t.desc||'').replace(/'/g,"\\'")}',${t.amount})">delete</span></div></div>`; }).join(''); }
+    return `<div class="tx-item"><div><div class="tx-desc">${t.description||t.desc||''}</div><div class="tx-meta">${t.date}${t.subcat?' · '+t.subcat:''}${t.note?' · '+t.note:''}</div></div><div style="text-align:right"><div class="tx-amt ${col}">${sign}${fmt(t.amount)}</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:3px"><span class="tx-del" style="color:var(--brass-soft)" onclick="startEditTx('${t.id}')">edit</span><span class="tx-del" onclick="confirmDelete('${t.id}','${(t.description||t.desc||'').replace(/'/g,"\\'")}',${t.amount})">delete</span></div></div></div>`; }).join(''); }
 
 function catBreakdown(txs){
   const bycat={}; txs.filter(t=>t.category==='expense').forEach(t=>{ bycat[t.subcat]=(bycat[t.subcat]||0)+Number(t.amount); });
@@ -959,7 +1003,7 @@ document.getElementById('tx-cat').addEventListener('change',e=>{
   const groups={income:['salary','freelance','other-income'],investment:['stocks','pension','crypto','property','other-inv']};
   const exp=['rent','council-tax','electric','wifi','groceries','petrol','housing','food','transport','bills','health','entertainment','shopping','dining','other-expense'];
   sc.querySelectorAll('option').forEach(o=>{ const show=v==='income'?groups.income.includes(o.value):v==='investment'?groups.investment.includes(o.value):exp.includes(o.value); o.style.display=show?'':'none'; });
-  if(v==='income') sc.value='salary'; else if(v==='investment') sc.value='stocks'; else sc.value='housing';
+  if(v==='income') sc.value='salary'; else if(v==='investment') sc.value='stocks'; else sc.value='other-expense';
 });
 
 function exportCSV(){
