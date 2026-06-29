@@ -274,7 +274,7 @@ a{color:var(--brass-soft)}
         <div class="form-row">
           <div><label>Category</label>
             <select id="tx-cat">
-              <option value="income">Income</option><option value="expense" selected>Expense</option><option value="investment">Investment</option>
+              <option value="income">Income</option><option value="expense" selected>Expense</option><option value="investment">Investment</option><option value="transfer">Transfer (e.g. credit card payment)</option>
             </select>
           </div>
           <div><label>Sub-category</label>
@@ -287,11 +287,23 @@ a{color:var(--brass-soft)}
               <option value="shopping">Shopping</option><option value="dining">Dining out</option><option value="other-expense">Other expense</option>
               <option value="stocks">Stocks / ETFs</option><option value="pension">Pension</option><option value="crypto">Crypto</option>
               <option value="property">Property</option><option value="other-inv">Other investment</option>
+              <option value="credit-card-payment">Credit card payment</option><option value="account-transfer">Between my accounts</option><option value="other-transfer">Other transfer</option>
             </select>
           </div>
         </div>
         <div class="form-row">
+          <div><label>Payment method</label>
+            <select id="tx-paymethod">
+              <option value="">Not specified</option>
+              <option value="cash">Cash</option>
+              <option value="debit">Debit card</option>
+              <option value="credit">Credit card</option>
+              <option value="bank-transfer">Bank transfer</option>
+            </select>
+          </div>
           <div><label>Date</label><input id="tx-date" type="date"></div>
+        </div>
+        <div class="form-row">
           <div><label>Note (optional)</label><input id="tx-note" placeholder="Optional note"></div>
         </div>
         <button class="btn" id="add-tx-btn">Add transaction</button>
@@ -303,6 +315,7 @@ a{color:var(--brass-soft)}
           <button class="filter-btn" data-cat="income">Income</button>
           <button class="filter-btn" data-cat="expense">Expenses</button>
           <button class="filter-btn" data-cat="investment">Investment</button>
+          <button class="filter-btn" data-cat="transfer">Transfers</button>
         </div>
         <div class="tx-list" id="tx-list"><div class="empty">No transactions yet</div></div>
       </div>
@@ -326,6 +339,11 @@ a{color:var(--brass-soft)}
       <div class="grid2">
         <div class="panel"><h3>Spending by category</h3><div class="chart-box"><canvas id="expenses-cat-chart"></canvas></div></div>
         <div class="panel"><h3>Monthly trend (last 6 months)</h3><div class="chart-box"><canvas id="expenses-trend-chart"></canvas></div></div>
+      </div>
+      <div class="panel" style="margin-bottom:14px">
+        <h3>This month — by payment method</h3>
+        <div id="expenses-paymethod"></div>
+        <p style="font-size:11px;color:var(--text-faint);margin-top:10px;line-height:1.6">Credit card bill payments are logged as <strong style="color:var(--text-dim)">Transfers</strong>, not expenses — so paying off the card doesn't double-count spending you already logged here.</p>
       </div>
       <div class="panel">
         <div class="section-head"><h3>All expenses</h3><span style="font-size:11px;color:var(--text-faint);font-family:var(--mono)" id="exp-count">0 entries</span></div>
@@ -545,7 +563,7 @@ let editingTxId = null;
 async function addTransaction(){
   const desc=document.getElementById('tx-desc').value.trim(); const amt=parseFloat(document.getElementById('tx-amt').value);
   if(!desc||!amt||amt<=0){ alert('Please fill in description and a positive amount.'); return; }
-  const tx={ description:desc, amount:amt, category:document.getElementById('tx-cat').value, subcat:document.getElementById('tx-subcat').value, date:document.getElementById('tx-date').value, note:document.getElementById('tx-note').value.trim() };
+  const tx={ description:desc, amount:amt, category:document.getElementById('tx-cat').value, subcat:document.getElementById('tx-subcat').value, date:document.getElementById('tx-date').value, note:document.getElementById('tx-note').value.trim(), payment_method:document.getElementById('tx-paymethod').value||null };
   const btn=document.getElementById('add-tx-btn');
   setSyncStatus('loading','saving…');
 
@@ -577,6 +595,7 @@ function startEditTx(id){
   document.getElementById('tx-cat').value=t.category;
   document.getElementById('tx-cat').dispatchEvent(new Event('change'));
   document.getElementById('tx-subcat').value=t.subcat||'';
+  document.getElementById('tx-paymethod').value=t.payment_method||'';
   document.getElementById('tx-date').value=t.date;
   document.getElementById('tx-note').value=t.note||'';
   const btn=document.getElementById('add-tx-btn');
@@ -680,7 +699,7 @@ const pct=n=>Math.round(n)+'%';
 
 function getMonthTx(offset=0){ const d=new Date(now.getFullYear(),now.getMonth()+offset,1); const yr=d.getFullYear(),mo=d.getMonth(); return state.transactions.filter(t=>{ const td=new Date(t.date); return td.getFullYear()===yr&&td.getMonth()===mo; }); }
 function getWeekTx(){ const start=new Date(now); start.setDate(now.getDate()-now.getDay()+1); start.setHours(0,0,0,0); return state.transactions.filter(t=>new Date(t.date)>=start); }
-function calcStats(txs){ let income=0,spent=0,invested=0,optional=0; txs.forEach(t=>{ if(t.category==='income') income+=Number(t.amount); else if(t.category==='investment') invested+=Number(t.amount); else { spent+=Number(t.amount); if(['entertainment','shopping','dining'].includes(t.subcat)) optional+=Number(t.amount); } }); const cashflow=income-spent-invested; const saverate=income>0?Math.round((cashflow/income)*100):0; return {income,spent,invested,optional,cashflow,saverate}; }
+function calcStats(txs){ let income=0,spent=0,invested=0,optional=0; txs.forEach(t=>{ if(t.category==='income') income+=Number(t.amount); else if(t.category==='investment') invested+=Number(t.amount); else if(t.category==='expense'){ spent+=Number(t.amount); if(['entertainment','shopping','dining'].includes(t.subcat)) optional+=Number(t.amount); } /* transfers are excluded entirely — they're not new spending */ }); const cashflow=income-spent-invested; const saverate=income>0?Math.round((cashflow/income)*100):0; return {income,spent,invested,optional,cashflow,saverate}; }
 function calcHealth(stats){ let s=30; if(stats.income>0){ s+=Math.min(25,stats.saverate*0.5); if(stats.saverate>=20) s+=10; const invR=(stats.invested/stats.income)*100; s+=Math.min(15,invR*0.75); const bu=state.profile.budget>0?(stats.spent/state.profile.budget)*100:100; if(bu<=80) s+=10; else if(bu<=100) s+=5; if(state.goals.length>0) s+=5; if(state.investments.length>0) s+=5; } return Math.min(100,Math.max(0,Math.round(s))); }
 
 const GAUGE_LEN = 251.2;
@@ -730,8 +749,12 @@ function renderTxList(){
   const el=document.getElementById('tx-list');
   document.getElementById('tx-count').textContent=txs.length+' entr'+(txs.length===1?'y':'ies');
   if(!txs.length){el.innerHTML='<div class="empty">No transactions yet</div>';return;}
-  el.innerHTML=txs.map(t=>{ const col=t.category==='income'?'green':t.category==='investment'?'brass':''; const sign=t.category==='income'?'+':'-';
-    return `<div class="tx-item"><div><div class="tx-desc">${t.description||t.desc||''}</div><div class="tx-meta">${t.date}${t.subcat?' · '+t.subcat:''}${t.note?' · '+t.note:''}</div></div><div style="text-align:right"><div class="tx-amt ${col}">${sign}${fmt(t.amount)}</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:3px"><span class="tx-del" style="color:var(--brass-soft)" onclick="startEditTx('${t.id}')">edit</span><span class="tx-del" onclick="confirmDelete('${t.id}','${(t.description||t.desc||'').replace(/'/g,"\\'")}',${t.amount})">delete</span></div></div></div>`; }).join(''); }
+  const pmLabel={cash:'Cash',debit:'Debit card',credit:'Credit card','bank-transfer':'Bank transfer'};
+  el.innerHTML=txs.map(t=>{
+    const col=t.category==='income'?'green':t.category==='investment'?'brass':t.category==='transfer'?'muted':'';
+    const sign=t.category==='income'?'+':t.category==='transfer'?'↔':'-';
+    const pm=t.payment_method?(' · '+pmLabel[t.payment_method]):'';
+    return `<div class="tx-item"><div><div class="tx-desc">${t.description||t.desc||''}</div><div class="tx-meta">${t.date}${t.subcat?' · '+t.subcat:''}${pm}${t.note?' · '+t.note:''}</div></div><div style="text-align:right"><div class="tx-amt ${col}">${sign}${fmt(t.amount)}</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:3px"><span class="tx-del" style="color:var(--brass-soft)" onclick="startEditTx('${t.id}')">edit</span><span class="tx-del" onclick="confirmDelete('${t.id}','${(t.description||t.desc||'').replace(/'/g,"\\'")}',${t.amount})">delete</span></div></div></div>`; }).join(''); }
 
 function catBreakdown(txs){
   const bycat={}; txs.filter(t=>t.category==='expense').forEach(t=>{ bycat[t.subcat]=(bycat[t.subcat]||0)+Number(t.amount); });
@@ -799,6 +822,28 @@ function renderExpensesTab(){
     <div class="stub"><div class="stub-label">This month</div><div class="stub-val">${fmt(thisMonthExp)}</div></div>
     <div class="stub"><div class="stub-label">Avg per month</div><div class="stub-val brass">${fmt(avgPerMonth)}</div></div>
     <div class="stub"><div class="stub-label">Top category</div><div class="stub-val" style="font-size:17px;text-transform:capitalize">${topCat}</div></div>`;
+
+  // Payment method breakdown (this month, expenses only — transfers excluded by design)
+  const pmLabel={cash:'Cash',debit:'Debit card',credit:'Credit card','bank-transfer':'Bank transfer'};
+  const monthExpTx=getMonthTx().filter(t=>t.category==='expense');
+  const byPm={};
+  monthExpTx.forEach(t=>{ const k=t.payment_method||'unspecified'; byPm[k]=(byPm[k]||0)+Number(t.amount); });
+  const pmEntries=Object.entries(byPm).sort((a,b)=>b[1]-a[1]);
+  const pmTotal=pmEntries.reduce((s,e)=>s+e[1],0);
+  const pmEl=document.getElementById('expenses-paymethod');
+  if(!pmEntries.length){ pmEl.innerHTML='<div class="empty">No expenses logged this month yet</div>'; }
+  else{
+    pmEl.innerHTML=pmEntries.map(([k,amt])=>{
+      const label=pmLabel[k]||'Not specified';
+      const p=pmTotal>0?Math.round((amt/pmTotal)*100):0;
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span>${label}</span><span style="font-family:var(--mono);color:var(--text-dim)">${fmt(amt)} · ${p}%</span>
+        </div>
+        <div class="progress"><div class="progress-fill" style="width:${p}%;background:var(--brass)"></div></div>
+      </div>`;
+    }).join('');
+  }
 
   // Category bar chart
   destroyChart('expCat');
@@ -1000,16 +1045,24 @@ document.querySelectorAll('#dl-filters .filter-btn').forEach(btn=>{ btn.addEvent
 
 document.getElementById('tx-cat').addEventListener('change',e=>{
   const sc=document.getElementById('tx-subcat'), v=e.target.value;
-  const groups={income:['salary','freelance','other-income'],investment:['stocks','pension','crypto','property','other-inv']};
-  const exp=['rent','council-tax','electric','wifi','groceries','petrol','housing','food','transport','bills','health','entertainment','shopping','dining','other-expense'];
-  sc.querySelectorAll('option').forEach(o=>{ const show=v==='income'?groups.income.includes(o.value):v==='investment'?groups.investment.includes(o.value):exp.includes(o.value); o.style.display=show?'':'none'; });
-  if(v==='income') sc.value='salary'; else if(v==='investment') sc.value='stocks'; else sc.value='other-expense';
+  const groups={
+    income:['salary','freelance','other-income'],
+    investment:['stocks','pension','crypto','property','other-inv'],
+    transfer:['credit-card-payment','account-transfer','other-transfer'],
+    expense:['rent','council-tax','electric','wifi','groceries','petrol','housing','food','transport','bills','health','entertainment','shopping','dining','other-expense']
+  };
+  const activeGroup=groups[v]||groups.expense;
+  sc.querySelectorAll('option').forEach(o=>{ o.style.display=activeGroup.includes(o.value)?'':'none'; });
+  if(v==='income') sc.value='salary';
+  else if(v==='investment') sc.value='stocks';
+  else if(v==='transfer') sc.value='credit-card-payment';
+  else sc.value='other-expense';
 });
 
 function exportCSV(){
   if(!state.transactions.length){ alert('No transactions to export yet.'); return; }
-  const headers=['Date','Description','Category','Sub-category','Amount','Note'];
-  const rows=state.transactions.map(t=>[t.date,'"'+(t.description||t.desc||'').replace(/"/g,'""')+'"',t.category,t.subcat||'',(t.category==='expense'?'-':'')+t.amount,'"'+(t.note||'').replace(/"/g,'""')+'"']);
+  const headers=['Date','Description','Category','Sub-category','Payment method','Amount','Note'];
+  const rows=state.transactions.map(t=>[t.date,'"'+(t.description||t.desc||'').replace(/"/g,'""')+'"',t.category,t.subcat||'',t.payment_method||'',(t.category==='expense'?'-':'')+t.amount,'"'+(t.note||'').replace(/"/g,'""')+'"']);
   const csv=[headers.join(','),...rows.map(r=>r.join(','))].join('\n');
   const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a');
   a.href=url; a.download='mycfo-transactions.csv'; a.click(); URL.revokeObjectURL(url);
@@ -1018,8 +1071,8 @@ function exportExcel(){
   const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const cell=(v,type='String')=> type==='Number'?`<Cell><Data ss:Type="Number">${esc(v)}</Data></Cell>`:`<Cell><Data ss:Type="String">${esc(v)}</Data></Cell>`;
   const hCell=v=>`<Cell ss:StyleID="header"><Data ss:Type="String">${esc(v)}</Data></Cell>`; const row=cells=>`<Row>${cells}</Row>`;
-  let txRows=row([hCell('Date'),hCell('Description'),hCell('Category'),hCell('Sub-category'),hCell('Amount'),hCell('Note')].join(''));
-  state.transactions.forEach(t=>{ const amt=t.category==='expense'?-t.amount:t.amount; txRows+=row([cell(t.date),cell(t.description||t.desc),cell(t.category),cell(t.subcat),cell(amt,'Number'),cell(t.note)].join('')); });
+  let txRows=row([hCell('Date'),hCell('Description'),hCell('Category'),hCell('Sub-category'),hCell('Payment method'),hCell('Amount'),hCell('Note')].join(''));
+  state.transactions.forEach(t=>{ const amt=t.category==='expense'?-t.amount:t.amount; txRows+=row([cell(t.date),cell(t.description||t.desc),cell(t.category),cell(t.subcat),cell(t.payment_method||''),cell(amt,'Number'),cell(t.note)].join('')); });
   let goalRows=row([hCell('Goal'),hCell('Target'),hCell('Saved'),hCell('Remaining'),hCell('% Complete'),hCell('Target Date')].join(''));
   state.goals.forEach(g=>{ const p=g.target_amount>0?Math.round((g.current_amount/g.target_amount)*100):0; goalRows+=row([cell(g.name),cell(g.target_amount,'Number'),cell(g.current_amount,'Number'),cell(g.target_amount-g.current_amount,'Number'),cell(p,'Number'),cell(g.target_date||'')].join('')); });
   let invRows=row([hCell('Account'),hCell('Type'),hCell('Balance'),hCell('Monthly Contribution')].join(''));
