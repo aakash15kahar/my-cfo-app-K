@@ -35,7 +35,7 @@ html,body{background:var(--ink);color:var(--text);font-family:var(--sans);min-he
 .sync-err{color:var(--rust);border-color:var(--rust-dim)}
 .sync-loading{color:var(--brass);border-color:var(--brass-dim)}
 
-/* ── Nav (desktop pill row) ── */
+/* ── Nav ── */
 nav.topnav{display:flex;gap:6px;padding:14px 20px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
 nav.topnav::-webkit-scrollbar{display:none}
 nav.topnav button{background:transparent;border:1px solid var(--line);color:var(--text-dim);border-radius:18px;padding:7px 15px;font-size:13px;font-family:var(--sans);cursor:pointer;white-space:nowrap;transition:.15s}
@@ -57,7 +57,7 @@ nav.topnav button:hover{color:var(--text)}
 .tab{display:none;padding:22px 20px}
 .tab.active{display:block}
 
-/* ── Gauge (signature element) ── */
+/* ── Gauge ── */
 .gauge-wrap{display:flex;align-items:center;gap:28px;background:var(--ink2);border:1px solid var(--line);border-radius:14px;padding:24px 28px;margin-bottom:18px;flex-wrap:wrap}
 .gauge-box{position:relative;width:200px;height:112px;flex-shrink:0}
 .gauge-svg{width:200px;height:112px;overflow:visible}
@@ -74,7 +74,7 @@ nav.topnav button:hover{color:var(--text)}
 .gauge-meta-label{color:var(--text-dim)}
 .gauge-meta-val{font-family:var(--mono);font-weight:500}
 
-/* ── Stat stubs (receipt-style) ── */
+/* ── Stubs ── */
 .stub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
 .stub{background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;position:relative}
 .stub::before{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:repeating-linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px)}
@@ -167,6 +167,48 @@ label{font-size:11px;color:var(--text-faint);display:block;margin-bottom:4px;tex
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--brass);border-radius:50%;animation:spin .6s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
 a{color:var(--brass-soft)}
+
+/* ── Credit Card Widget ─────────────────────────────────── */
+.cc-section-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);font-family:var(--mono);margin:0 0 12px}
+.cc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:20px}
+.cc-card{background:linear-gradient(135deg,#1c1c1c 0%,#252525 100%);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:20px 22px 16px;position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .15s ease}
+.cc-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.cc-card::before{content:'';position:absolute;top:-50px;right:-50px;width:160px;height:160px;border-radius:50%;background:var(--cc-colour,#2A78D6);opacity:.10;pointer-events:none}
+.cc-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.cc-card-name{font-family:var(--serif);font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em}
+.cc-card-chip{width:34px;height:26px;border-radius:5px;background:linear-gradient(135deg,#c8963c 0%,#f0c96b 50%,#c8963c 100%)}
+.cc-balance-label{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px}
+.cc-balance-amount{font-family:var(--serif);font-size:28px;font-weight:700;color:#fff;letter-spacing:-.03em;margin-bottom:14px}
+.cc-balance-amount span{font-size:14px;font-weight:400;opacity:.55;margin-right:1px}
+.cc-util-bar-bg{height:6px;border-radius:99px;background:rgba(255,255,255,.08);margin-bottom:6px;overflow:hidden}
+.cc-util-bar-fill{height:100%;border-radius:99px;background:var(--cc-colour,#2A78D6);transition:width .7s cubic-bezier(.4,0,.2,1)}
+.cc-util-bar-fill.cc-warn{background:#eda100}
+.cc-util-bar-fill.cc-danger{background:#e34948}
+.cc-util-row{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-bottom:12px}
+.cc-util-pct{font-weight:700;color:rgba(255,255,255,.8)}
+.cc-txns{margin-bottom:12px}
+.cc-txn-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:11px;border-bottom:1px solid rgba(255,255,255,.05)}
+.cc-txn-row:last-child{border-bottom:none}
+.cc-txn-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.cc-txn-desc{color:rgba(255,255,255,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.cc-txn-date{color:rgba(255,255,255,.28);font-size:10px;flex-shrink:0}
+.cc-txn-cat{font-size:9px;padding:2px 6px;border-radius:99px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);flex-shrink:0}
+.cc-txn-amt{color:#e87a7a;font-weight:600;font-size:11px;flex-shrink:0}
+.cc-no-txns{font-size:11px;color:rgba(255,255,255,.25);padding:6px 0}
+.cc-footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.cc-due{font-size:11px;color:rgba(255,255,255,.35)}
+.cc-due strong{color:rgba(255,255,255,.7)}
+.cc-pay-btn{font-size:11px;font-weight:600;padding:5px 14px;border-radius:99px;border:1.5px solid var(--cc-colour,#2A78D6);color:var(--cc-colour,#2A78D6);background:transparent;cursor:pointer;transition:all .15s}
+.cc-pay-btn:hover{background:var(--cc-colour,#2A78D6);color:#fff}
+/* Card selector in form */
+.cc-selector-wrap{display:none;margin-top:2px;margin-bottom:9px;padding:12px 14px;background:var(--ink3);border:1px solid var(--line);border-radius:8px}
+.cc-selector-wrap.cc-visible{display:block}
+.cc-selector-label{font-size:11px;font-weight:600;color:var(--text-faint);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono)}
+.cc-selector-row{display:flex;gap:8px;flex-wrap:wrap}
+.cc-selector-pill{padding:6px 16px;border-radius:99px;font-size:12px;font-weight:500;border:1.5px solid var(--line);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .15s;font-family:var(--sans)}
+.cc-selector-pill:hover{border-color:rgba(255,255,255,.3);color:#fff}
+.cc-selector-pill.cc-active{border-color:var(--cc-pill,#2A78D6);color:var(--cc-pill,#2A78D6);background:rgba(255,255,255,.03)}
+/* ── End Credit Card Widget ── */
 </style>
 </head>
 <body>
@@ -257,6 +299,11 @@ a{color:var(--brass-soft)}
         <div class="stub"><div class="stub-label">Optional spend</div><div class="stub-val brass" id="ov-optional">£0</div></div>
       </div>
 
+      <!-- ── Credit Card Widget ── -->
+      <p class="cc-section-label">Credit Cards</p>
+      <div class="cc-grid" id="ccGrid"></div>
+      <!-- ── End Credit Card Widget ── -->
+
       <div class="grid2">
         <div class="panel"><h3>Investments</h3><div id="ov-investments"><div class="empty">Add accounts in Setup</div></div></div>
         <div class="panel"><h3>Goals</h3><div id="ov-goals"><div class="empty">Add goals in the Goals tab</div></div></div>
@@ -303,6 +350,12 @@ a{color:var(--brass-soft)}
           </div>
           <div><label>Date</label><input id="tx-date" type="date"></div>
         </div>
+        <!-- Credit card selector — appears when payment method = Credit card -->
+        <div id="cc-selector-wrap" class="cc-selector-wrap">
+          <div class="cc-selector-label">Which credit card?</div>
+          <div class="cc-selector-row" id="cc-selector-row"></div>
+          <input type="hidden" id="tx-card-id" value="">
+        </div>
         <div class="form-row">
           <div><label>Note (optional)</label><input id="tx-note" placeholder="Optional note"></div>
         </div>
@@ -333,7 +386,7 @@ a{color:var(--brass-soft)}
       <div class="panel"><h3>Spending by category</h3><div class="chart-box"><canvas id="monthly-chart"></canvas></div></div>
     </div>
 
-    <!-- EXPENSES (detailed) -->
+    <!-- EXPENSES -->
     <div class="tab" id="tab-expenses">
       <div class="stub-grid" id="expenses-cards"></div>
       <div class="grid2">
@@ -366,7 +419,7 @@ a{color:var(--brass-soft)}
       </div>
     </div>
 
-    <!-- BUDGETS (envelope budgeting) -->
+    <!-- BUDGETS -->
     <div class="tab" id="tab-budgets">
       <div class="setup-section">
         <h3>Add budget envelope</h3>
@@ -514,7 +567,7 @@ a{color:var(--brass-soft)}
 let SUPABASE_URL = localStorage.getItem('mycfo_url')||'';
 let SUPABASE_KEY = localStorage.getItem('mycfo_key')||'';
 let pendingDeleteId = null;
-let state = { profile:{income:0,saveTarget:0,budget:0,currency:'£'}, transactions:[], goals:[], investments:[], budgets:[], aiChat:[] };
+let state = { profile:{income:0,saveTarget:0,budget:0,currency:'£'}, transactions:[], goals:[], investments:[], budgets:[], creditCards:[], aiChat:[] };
 let charts = {};
 
 const sbHeaders = ()=>({'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation'});
@@ -532,9 +585,10 @@ async function loadAll(){
     const [profileRows, txRows, goalRows, invRows] = await Promise.all([sbGet('cfo_profile'),sbGet('cfo_transactions'),sbGet('cfo_goals'),sbGet('cfo_investments')]);
     if(profileRows.length) state.profile = profileRows[0];
     state.transactions = txRows; state.goals = goalRows; state.investments = invRows;
-    try{ state.budgets = await sbGet('cfo_budgets'); }catch(e){ state.budgets = []; console.warn('cfo_budgets table not found yet — run the new SQL in Supabase.'); }
+    try{ state.budgets = await sbGet('cfo_budgets'); }catch(e){ state.budgets = []; console.warn('cfo_budgets not found'); }
+    try{ const cards=await fetch(`${SUPABASE_URL}/rest/v1/cfo_credit_cards?order=id.asc`,{headers:sbHeaders()}); state.creditCards=cards.ok?await cards.json():[]; }catch(e){ state.creditCards=[]; }
     setSyncStatus('ok','synced');
-    loadSetupFields(); renderAll();
+    loadSetupFields(); renderAll(); renderCreditCards();
   }catch(e){ setSyncStatus('err','offline'); console.error(e); }
 }
 
@@ -563,7 +617,8 @@ let editingTxId = null;
 async function addTransaction(){
   const desc=document.getElementById('tx-desc').value.trim(); const amt=parseFloat(document.getElementById('tx-amt').value);
   if(!desc||!amt||amt<=0){ alert('Please fill in description and a positive amount.'); return; }
-  const tx={ description:desc, amount:amt, category:document.getElementById('tx-cat').value, subcat:document.getElementById('tx-subcat').value, date:document.getElementById('tx-date').value, note:document.getElementById('tx-note').value.trim(), payment_method:document.getElementById('tx-paymethod').value||null };
+  const cardId = document.getElementById('tx-card-id').value || null;
+  const tx={ description:desc, amount:amt, category:document.getElementById('tx-cat').value, subcat:document.getElementById('tx-subcat').value, date:document.getElementById('tx-date').value, note:document.getElementById('tx-note').value.trim(), payment_method:document.getElementById('tx-paymethod').value||null, card_id: cardId ? parseInt(cardId) : null };
   const btn=document.getElementById('add-tx-btn');
   setSyncStatus('loading','saving…');
 
@@ -573,7 +628,7 @@ async function addTransaction(){
       await sbUpdate('cfo_transactions',editingTxId,tx);
       const idx=state.transactions.findIndex(t=>t.id===editingTxId);
       if(idx>-1) state.transactions[idx]={...state.transactions[idx],...tx};
-      setSyncStatus('ok','synced'); cancelEditTx(); renderAll();
+      setSyncStatus('ok','synced'); cancelEditTx(); renderAll(); renderCreditCards();
     }catch(e){ setSyncStatus('err','error'); alert('Could not update: '+e.message); }
     btn.disabled=false;
     return;
@@ -582,7 +637,9 @@ async function addTransaction(){
   btn.disabled=true; btn.textContent='Adding…';
   try{
     const rows=await sbInsert('cfo_transactions',tx); state.transactions.unshift(rows[0]); setSyncStatus('ok','synced');
-    document.getElementById('tx-desc').value=''; document.getElementById('tx-amt').value=''; document.getElementById('tx-note').value=''; renderAll();
+    document.getElementById('tx-desc').value=''; document.getElementById('tx-amt').value=''; document.getElementById('tx-note').value='';
+    document.getElementById('tx-card-id').value='';
+    renderAll(); renderCreditCards();
   }catch(e){ setSyncStatus('err','error'); alert('Could not save: '+e.message); }
   btn.disabled=false; btn.textContent='Add transaction';
 }
@@ -596,8 +653,10 @@ function startEditTx(id){
   document.getElementById('tx-cat').dispatchEvent(new Event('change'));
   document.getElementById('tx-subcat').value=t.subcat||'';
   document.getElementById('tx-paymethod').value=t.payment_method||'';
+  document.getElementById('tx-paymethod').dispatchEvent(new Event('change'));
   document.getElementById('tx-date').value=t.date;
   document.getElementById('tx-note').value=t.note||'';
+  if(t.card_id) document.getElementById('tx-card-id').value=t.card_id;
   const btn=document.getElementById('add-tx-btn');
   btn.textContent='Update transaction'; btn.style.background='var(--brass-soft)';
   if(!document.getElementById('cancel-edit-btn')){
@@ -612,8 +671,10 @@ function startEditTx(id){
 function cancelEditTx(){
   editingTxId=null;
   document.getElementById('tx-desc').value=''; document.getElementById('tx-amt').value=''; document.getElementById('tx-note').value='';
+  document.getElementById('tx-card-id').value='';
   const btn=document.getElementById('add-tx-btn'); btn.textContent='Add transaction'; btn.style.background='';
   document.getElementById('cancel-edit-btn')?.remove();
+  hideCCSelector();
 }
 
 function confirmDelete(id,desc,amt){ pendingDeleteId=id; document.getElementById('delete-modal-desc').textContent=`Delete "${desc}" (${fmt(amt)})?`; document.getElementById('delete-modal').style.display='flex'; }
@@ -621,7 +682,7 @@ document.getElementById('delete-cancel').addEventListener('click',()=>{ document
 document.getElementById('delete-confirm').addEventListener('click', async ()=>{
   document.getElementById('delete-modal').style.display='none'; if(!pendingDeleteId) return;
   setSyncStatus('loading','deleting…');
-  try{ await sbDelete('cfo_transactions',pendingDeleteId); state.transactions=state.transactions.filter(t=>t.id!==pendingDeleteId); setSyncStatus('ok','synced'); renderAll(); }
+  try{ await sbDelete('cfo_transactions',pendingDeleteId); state.transactions=state.transactions.filter(t=>t.id!==pendingDeleteId); setSyncStatus('ok','synced'); renderAll(); renderCreditCards(); }
   catch(e){ setSyncStatus('err','error'); alert('Delete failed: '+e.message); }
   pendingDeleteId=null;
 });
@@ -679,7 +740,6 @@ function renderBudgets(){
   }).join('');
 }
 
-
 async function addInvestment(){
   const name=document.getElementById('inv-name').value.trim(); const balance=parseFloat(document.getElementById('inv-bal').value)||0;
   if(!name){ alert('Please enter an account name.'); return; }
@@ -699,7 +759,7 @@ const pct=n=>Math.round(n)+'%';
 
 function getMonthTx(offset=0){ const d=new Date(now.getFullYear(),now.getMonth()+offset,1); const yr=d.getFullYear(),mo=d.getMonth(); return state.transactions.filter(t=>{ const td=new Date(t.date); return td.getFullYear()===yr&&td.getMonth()===mo; }); }
 function getWeekTx(){ const start=new Date(now); start.setDate(now.getDate()-now.getDay()+1); start.setHours(0,0,0,0); return state.transactions.filter(t=>new Date(t.date)>=start); }
-function calcStats(txs){ let income=0,spent=0,invested=0,optional=0; txs.forEach(t=>{ if(t.category==='income') income+=Number(t.amount); else if(t.category==='investment') invested+=Number(t.amount); else if(t.category==='expense'){ spent+=Number(t.amount); if(['entertainment','shopping','dining'].includes(t.subcat)) optional+=Number(t.amount); } /* transfers are excluded entirely — they're not new spending */ }); const cashflow=income-spent-invested; const saverate=income>0?Math.round((cashflow/income)*100):0; return {income,spent,invested,optional,cashflow,saverate}; }
+function calcStats(txs){ let income=0,spent=0,invested=0,optional=0; txs.forEach(t=>{ if(t.category==='income') income+=Number(t.amount); else if(t.category==='investment') invested+=Number(t.amount); else if(t.category==='expense'){ spent+=Number(t.amount); if(['entertainment','shopping','dining'].includes(t.subcat)) optional+=Number(t.amount); } }); const cashflow=income-spent-invested; const saverate=income>0?Math.round((cashflow/income)*100):0; return {income,spent,invested,optional,cashflow,saverate}; }
 function calcHealth(stats){ let s=30; if(stats.income>0){ s+=Math.min(25,stats.saverate*0.5); if(stats.saverate>=20) s+=10; const invR=(stats.invested/stats.income)*100; s+=Math.min(15,invR*0.75); const bu=state.profile.budget>0?(stats.spent/state.profile.budget)*100:100; if(bu<=80) s+=10; else if(bu<=100) s+=5; if(state.goals.length>0) s+=5; if(state.investments.length>0) s+=5; } return Math.min(100,Math.max(0,Math.round(s))); }
 
 const GAUGE_LEN = 251.2;
@@ -729,7 +789,6 @@ function renderAll(){
   document.getElementById('ov-spent').textContent=fmt(stats.spent);
   document.getElementById('ov-invested').textContent=fmt(stats.invested);
   document.getElementById('ov-optional').textContent=fmt(stats.optional);
-
   renderOvInv(); renderOvGoals(); renderTxList();
   renderWeekly(); renderMonthly(); renderGoals();
   renderForecast(); renderInvList(); renderAiSuggestions();
@@ -754,7 +813,9 @@ function renderTxList(){
     const col=t.category==='income'?'green':t.category==='investment'?'brass':t.category==='transfer'?'muted':'';
     const sign=t.category==='income'?'+':t.category==='transfer'?'↔':'-';
     const pm=t.payment_method?(' · '+pmLabel[t.payment_method]):'';
-    return `<div class="tx-item"><div><div class="tx-desc">${t.description||t.desc||''}</div><div class="tx-meta">${t.date}${t.subcat?' · '+t.subcat:''}${pm}${t.note?' · '+t.note:''}</div></div><div style="text-align:right"><div class="tx-amt ${col}">${sign}${fmt(t.amount)}</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:3px"><span class="tx-del" style="color:var(--brass-soft)" onclick="startEditTx('${t.id}')">edit</span><span class="tx-del" onclick="confirmDelete('${t.id}','${(t.description||t.desc||'').replace(/'/g,"\\'")}',${t.amount})">delete</span></div></div></div>`; }).join(''); }
+    const cardName = t.card_id ? (state.creditCards.find(c=>c.id===t.card_id)?.name||'') : '';
+    const cardTag = cardName ? ` · <span style="color:var(--brass-soft)">${cardName}</span>` : '';
+    return `<div class="tx-item"><div><div class="tx-desc">${t.description||t.desc||''}</div><div class="tx-meta">${t.date}${t.subcat?' · '+t.subcat:''}${pm}${cardTag}${t.note?' · '+t.note:''}</div></div><div style="text-align:right"><div class="tx-amt ${col}">${sign}${fmt(t.amount)}</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:3px"><span class="tx-del" style="color:var(--brass-soft)" onclick="startEditTx('${t.id}')">edit</span><span class="tx-del" onclick="confirmDelete('${t.id}','${(t.description||t.desc||'').replace(/'/g,"\\'")}',${t.amount})">delete</span></div></div></div>`; }).join(''); }
 
 function catBreakdown(txs){
   const bycat={}; txs.filter(t=>t.category==='expense').forEach(t=>{ bycat[t.subcat]=(bycat[t.subcat]||0)+Number(t.amount); });
@@ -791,11 +852,9 @@ function renderMonthly(){
   renderDonut('monthly-chart','monthly',catBreakdown(txs));
 }
 
-// ─── EXPENSES TAB (detailed) ──────────────────────────────────
+// ─── EXPENSES TAB ─────────────────────────────────────────────
 let expCatFilter = 'all';
-
 function getAllExpenses(){ return state.transactions.filter(t=>t.category==='expense'); }
-
 function getMonthlyExpenseTrend(months=6){
   const labels=[], totals=[];
   for(let i=months-1;i>=0;i--){
@@ -816,14 +875,11 @@ function renderExpensesTab(){
   const avgPerMonth=lifetimeTotal/monthsSpan;
   const catTotals=catBreakdown(allExp);
   const topCat=catTotals.length?catTotals[0][0].replace('-',' '):'—';
-
   document.getElementById('expenses-cards').innerHTML=`
     <div class="stub"><div class="stub-label">Total expenses (all time)</div><div class="stub-val red">${fmt(lifetimeTotal)}</div></div>
     <div class="stub"><div class="stub-label">This month</div><div class="stub-val">${fmt(thisMonthExp)}</div></div>
     <div class="stub"><div class="stub-label">Avg per month</div><div class="stub-val brass">${fmt(avgPerMonth)}</div></div>
     <div class="stub"><div class="stub-label">Top category</div><div class="stub-val" style="font-size:17px;text-transform:capitalize">${topCat}</div></div>`;
-
-  // Payment method breakdown (this month, expenses only — transfers excluded by design)
   const pmLabel={cash:'Cash',debit:'Debit card',credit:'Credit card','bank-transfer':'Bank transfer'};
   const monthExpTx=getMonthTx().filter(t=>t.category==='expense');
   const byPm={};
@@ -836,56 +892,37 @@ function renderExpensesTab(){
     pmEl.innerHTML=pmEntries.map(([k,amt])=>{
       const label=pmLabel[k]||'Not specified';
       const p=pmTotal>0?Math.round((amt/pmTotal)*100):0;
-      return `<div style="margin-bottom:10px">
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
-          <span>${label}</span><span style="font-family:var(--mono);color:var(--text-dim)">${fmt(amt)} · ${p}%</span>
-        </div>
-        <div class="progress"><div class="progress-fill" style="width:${p}%;background:var(--brass)"></div></div>
-      </div>`;
+      return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>${label}</span><span style="font-family:var(--mono);color:var(--text-dim)">${fmt(amt)} · ${p}%</span></div><div class="progress"><div class="progress-fill" style="width:${p}%;background:var(--brass)"></div></div></div>`;
     }).join('');
   }
-
-  // Category bar chart
   destroyChart('expCat');
   const ctx=document.getElementById('expenses-cat-chart');
   if(ctx){
     if(!catTotals.length){ ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height); }
-    else{
-      charts.expCat=new Chart(ctx,{ type:'bar', data:{ labels:catTotals.map(e=>e[0].replace('-',' ')), datasets:[{ data:catTotals.map(e=>e[1]), backgroundColor:'#c1604b88', borderColor:'#c1604b', borderWidth:1, borderRadius:4 }] },
+    else{ charts.expCat=new Chart(ctx,{ type:'bar', data:{ labels:catTotals.map(e=>e[0].replace('-',' ')), datasets:[{ data:catTotals.map(e=>e[1]), backgroundColor:'#c1604b88', borderColor:'#c1604b', borderWidth:1, borderRadius:4 }] },
         options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-          scales:{ x:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}}, y:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Sans',size:11}},grid:{display:false}} } } });
-    }
+          scales:{ x:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}}, y:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Sans',size:11}},grid:{display:false}} } } }); }
   }
-
-  // Trend line chart (last 6 months actual)
   destroyChart('expTrend');
   const trend=getMonthlyExpenseTrend(6);
   const tctx=document.getElementById('expenses-trend-chart');
-  if(tctx){
-    charts.expTrend=new Chart(tctx,{ type:'line', data:{ labels:trend.labels, datasets:[{label:'Expenses',data:trend.totals,borderColor:'#c1604b',backgroundColor:'#c1604b22',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#c1604b'}] },
+  if(tctx){ charts.expTrend=new Chart(tctx,{ type:'line', data:{ labels:trend.labels, datasets:[{label:'Expenses',data:trend.totals,borderColor:'#c1604b',backgroundColor:'#c1604b22',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#c1604b'}] },
       options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-        scales:{ x:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}}, y:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}} } } });
-  }
-
-  // Category filter pills
+        scales:{ x:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}}, y:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}} } } }); }
   const filterEl=document.getElementById('exp-filters');
   const cats=['all',...catTotals.map(e=>e[0])];
   filterEl.innerHTML=cats.map(c=>`<button class="filter-btn ${c===expCatFilter?'active':''}" data-excat="${c}">${c==='all'?'All categories':c.replace('-',' ')}</button>`).join('');
   filterEl.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ expCatFilter=b.dataset.excat; renderExpensesTab(); }));
-
-  // Table
   const filtered=(expCatFilter==='all'?allExp:allExp.filter(t=>t.subcat===expCatFilter)).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
   document.getElementById('exp-count').textContent=filtered.length+' entr'+(filtered.length===1?'y':'ies');
   const tbody=document.getElementById('expenses-table-body');
   if(!filtered.length){ tbody.innerHTML=`<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--text-faint);font-style:italic">No expenses yet</td></tr>`; }
-  else{
-    tbody.innerHTML=filtered.map(t=>`<tr style="border-bottom:1px solid var(--line-soft)">
+  else{ tbody.innerHTML=filtered.map(t=>`<tr style="border-bottom:1px solid var(--line-soft)">
       <td style="padding:8px 6px;font-family:var(--mono);font-size:12px;color:var(--text-dim)">${t.date}</td>
       <td style="padding:8px 6px">${t.description||t.desc||''}</td>
       <td style="padding:8px 6px;font-family:var(--mono);font-size:12px;color:var(--text-faint);text-transform:capitalize">${(t.subcat||'').replace('-',' ')}</td>
       <td style="padding:8px 6px;text-align:right;font-family:var(--mono);color:var(--rust)">${fmt(t.amount)}</td>
-    </tr>`).join('');
-  }
+    </tr>`).join(''); }
   const filteredTotal=filtered.reduce((s,t)=>s+Number(t.amount),0);
   document.getElementById('expenses-table-total').textContent=fmt(filteredTotal);
 }
@@ -905,7 +942,6 @@ function renderForecast(){
     const inc=baseIncome, spend=baseSpend*(1+i*0.002), saved=inc-spend-baseInv;
     incomes.push(Math.round(inc)); spends.push(Math.round(spend)); saveds.push(Math.round(saved));
     nw+=saved+baseInv; nwSeries.push(Math.round(nw)); }
-
   destroyChart('forecast');
   const fctx=document.getElementById('forecast-chart');
   charts.forecast=new Chart(fctx,{ type:'bar', data:{ labels, datasets:[
@@ -915,7 +951,6 @@ function renderForecast(){
     ]}, options:{ responsive:true, maintainAspectRatio:false,
       scales:{ x:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}}, y:{ticks:{color:'#9aa3b8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222838'}} },
       plugins:{ legend:{ position:'top', labels:{color:'#9aa3b8',font:{family:'IBM Plex Sans',size:11}} } } } });
-
   destroyChart('networth');
   const nctx=document.getElementById('networth-chart');
   charts.networth=new Chart(nctx,{ type:'line', data:{ labels, datasets:[{label:'Net worth',data:nwSeries,borderColor:'#c9a227',backgroundColor:'#c9a22722',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#c9a227'}] },
@@ -933,6 +968,104 @@ function renderAiSuggestions(){
   document.getElementById('ai-suggestions').innerHTML=s.map(q=>`<button class="filter-btn" onclick="document.getElementById('ai-input').value='${q}';sendAI()">${q}</button>`).join('');
 }
 
+// ─── CREDIT CARD WIDGET ───────────────────────────────────────
+function renderCreditCards(){
+  const grid = document.getElementById('ccGrid');
+  if(!grid) return;
+  const cards = state.creditCards;
+  if(!cards.length){
+    grid.style.display='none';
+    grid.previousElementSibling.style.display='none';
+    return;
+  }
+  grid.style.display='grid';
+  grid.previousElementSibling.style.display='';
+  const now2 = new Date();
+  const yr = now2.getFullYear(), mo = now2.getMonth()+1;
+  const lastDay = new Date(yr, mo, 0).getDate();
+  const from = `${yr}-${String(mo).padStart(2,'0')}-01`;
+  const to   = `${yr}-${String(mo).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+  grid.innerHTML = cards.map(card => {
+    const txns = state.transactions.filter(t =>
+      t.card_id === card.id && t.category === 'expense' && t.date >= from && t.date <= to
+    );
+    const spent = txns.reduce((s,t) => s + Number(t.amount), 0);
+    const avail = Math.max(0, Number(card.limit_amount) - spent);
+    const utilPct = card.limit_amount > 0 ? Math.min(100, Math.round((spent / Number(card.limit_amount)) * 100)) : 0;
+    const fillCls = utilPct >= 90 ? 'cc-danger' : utilPct >= 70 ? 'cc-warn' : '';
+    const nextMon = new Date(yr, mo, 1);
+    const dueStr = `${card.due_day} ${nextMon.toLocaleString('en-GB',{month:'short'})}`;
+    const fmtAmt = n => '£'+Math.abs(parseFloat(n)).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const txRows = txns.slice(0,4).map(t =>
+      `<div class="cc-txn-row">
+        <div class="cc-txn-left">
+          <span class="cc-txn-desc">${t.description}</span>
+          <span class="cc-txn-date">${new Date(t.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>
+          <span class="cc-txn-cat">${(t.subcat||'').replace(/-/g,' ')}</span>
+        </div>
+        <span class="cc-txn-amt">−${fmtAmt(t.amount)}</span>
+      </div>`
+    ).join('');
+    const moreTxt = txns.length > 4 ? `<p class="cc-no-txns" style="margin-top:4px">+${txns.length-4} more charges</p>` : '';
+    const noTxt   = txns.length === 0 ? '<p class="cc-no-txns">No charges this month ✓</p>' : '';
+    return `<div class="cc-card" style="--cc-colour:${card.colour||'#2A78D6'}">
+      <div class="cc-card-header">
+        <div class="cc-card-name">${card.name}</div>
+        <div class="cc-card-chip"></div>
+      </div>
+      <div class="cc-balance-label">Spent this month</div>
+      <div class="cc-balance-amount"><span>£</span>${spent.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <div class="cc-util-bar-bg"><div class="cc-util-bar-fill ${fillCls}" style="width:${utilPct}%"></div></div>
+      <div class="cc-util-row">
+        <span><span class="cc-util-pct">${utilPct}%</span> of £${parseInt(card.limit_amount).toLocaleString()} limit</span>
+        <span>${fmtAmt(avail)} available</span>
+      </div>
+      <div class="cc-txns">${txRows}${moreTxt}${noTxt}</div>
+      <div class="cc-footer">
+        <span class="cc-due">Bill due <strong>${dueStr}</strong></span>
+        <button class="cc-pay-btn" onclick="prefillCardPayment('${card.name}',${spent.toFixed(2)})">Pay bill →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function prefillCardPayment(cardName, amount){
+  document.querySelector('[data-tab="dailylog"]').click();
+  setTimeout(()=>{
+    document.getElementById('tx-desc').value = cardName+' Credit Card Payment';
+    document.getElementById('tx-amt').value  = amount.toFixed(2);
+    document.getElementById('tx-cat').value  = 'transfer';
+    document.getElementById('tx-cat').dispatchEvent(new Event('change'));
+    document.getElementById('tx-subcat').value = 'credit-card-payment';
+    document.getElementById('tx-paymethod').value = 'bank-transfer';
+    document.getElementById('tx-paymethod').dispatchEvent(new Event('change'));
+    document.getElementById('tx-note').value = 'Paying '+cardName+' bill from salary';
+    document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+    window.scrollTo({top:0,behavior:'smooth'});
+  }, 80);
+}
+
+function showCCSelector(){
+  const wrap = document.getElementById('cc-selector-wrap');
+  const row  = document.getElementById('cc-selector-row');
+  if(!state.creditCards.length){ hideCCSelector(); return; }
+  row.innerHTML = state.creditCards.map(c =>
+    `<button type="button" class="cc-selector-pill" style="--cc-pill:${c.colour||'#2A78D6'}"
+      data-card-id="${c.id}" onclick="pickCard(this,${c.id})">${c.name}</button>`
+  ).join('');
+  wrap.classList.add('cc-visible');
+}
+function hideCCSelector(){
+  document.getElementById('cc-selector-wrap').classList.remove('cc-visible');
+  document.getElementById('tx-card-id').value = '';
+}
+function pickCard(btn, cardId){
+  document.getElementById('cc-selector-row').querySelectorAll('.cc-selector-pill').forEach(p=>p.classList.remove('cc-active'));
+  btn.classList.add('cc-active');
+  document.getElementById('tx-card-id').value = cardId;
+}
+// ─── END CREDIT CARD WIDGET ───────────────────────────────────
+
 async function sendAI(){
   const input=document.getElementById('ai-input'); const q=input.value.trim(); if(!q) return; input.value='';
   const stats=calcStats(getMonthTx()), health=calcHealth(stats); const nw=state.investments.reduce((s,i)=>s+(Number(i.balance)||0),0);
@@ -941,26 +1074,20 @@ async function sendAI(){
   const chat=document.getElementById('ai-chat');
   chat.innerHTML+=`<div class="ai-msg user">${q}</div><div class="ai-msg" id="ai-thinking"><span class="spinner"></span>Thinking…</div>`;
   chat.scrollTop=chat.scrollHeight;
-
   if(aiProvider==='gemini'){
     const geminiKey=localStorage.getItem('mycfo_gemini_key')||'';
-    if(!geminiKey){ document.getElementById('ai-thinking').remove(); chat.innerHTML+=`<div class="ai-msg red">Please add your Gemini API key in Setup → AI Settings to use this feature.</div>`; chat.scrollTop=chat.scrollHeight; return; }
+    if(!geminiKey){ document.getElementById('ai-thinking').remove(); chat.innerHTML+=`<div class="ai-msg red">Please add your Gemini API key in Setup → AI Settings.</div>`; chat.scrollTop=chat.scrollHeight; return; }
     try{
-      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,{
-        method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':geminiKey},
-        body:JSON.stringify({ system_instruction:{parts:[{text:systemPrompt}]}, contents:[{role:'user',parts:[{text:context}]}] })
-      });
+      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':geminiKey},body:JSON.stringify({system_instruction:{parts:[{text:systemPrompt}]},contents:[{role:'user',parts:[{text:context}]}]})});
       const data=await res.json();
       if(data.error){ throw new Error(data.error.message||'Gemini API error'); }
       const reply=data.candidates?.[0]?.content?.parts?.[0]?.text||'Sorry, could not get a response.';
       document.getElementById('ai-thinking').remove(); chat.innerHTML+=`<div class="ai-msg">${reply}</div>`;
     }catch(e){ document.getElementById('ai-thinking')?.remove(); chat.innerHTML+=`<div class="ai-msg red">Error: ${e.message}</div>`; }
-    chat.scrollTop=chat.scrollHeight;
-    return;
+    chat.scrollTop=chat.scrollHeight; return;
   }
-
   const anthropicKey=localStorage.getItem('mycfo_anthropic_key')||'';
-  if(!anthropicKey){ document.getElementById('ai-thinking').remove(); chat.innerHTML+=`<div class="ai-msg red">Please add your Anthropic API key in Setup → AI Settings to use this feature.</div>`; chat.scrollTop=chat.scrollHeight; return; }
+  if(!anthropicKey){ document.getElementById('ai-thinking').remove(); chat.innerHTML+=`<div class="ai-msg red">Please add your Anthropic API key in Setup → AI Settings.</div>`; chat.scrollTop=chat.scrollHeight; return; }
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:systemPrompt,messages:[{role:'user',content:context}]})});
     const data=await res.json();
@@ -1016,6 +1143,7 @@ document.getElementById('save-gemini-key-btn').addEventListener('click',()=>{
   if(!key){ document.getElementById('gemini-key-status').innerHTML='<span class="red">Please enter a key</span>'; return; }
   localStorage.setItem('mycfo_gemini_key',key); document.getElementById('gemini-key-status').innerHTML='<span class="green">✓ Gemini key saved!</span>';
 });
+
 let aiProvider = localStorage.getItem('mycfo_ai_provider') || 'claude';
 function setProvider(p){
   aiProvider = p; localStorage.setItem('mycfo_ai_provider',p);
@@ -1026,6 +1154,7 @@ function setProvider(p){
 document.getElementById('provider-claude').addEventListener('click',()=>setProvider('claude'));
 document.getElementById('provider-gemini').addEventListener('click',()=>setProvider('gemini'));
 setProvider(aiProvider);
+
 document.getElementById('export-csv-btn').addEventListener('click', exportCSV);
 document.getElementById('export-excel-btn').addEventListener('click', exportExcel);
 document.getElementById('reset-btn').addEventListener('click', async ()=>{
@@ -1037,11 +1166,17 @@ document.getElementById('reset-btn').addEventListener('click', async ()=>{
       fetch(`${SUPABASE_URL}/rest/v1/cfo_goals?id=gt.0`,{method:'DELETE',headers:sbHeaders()}),
       fetch(`${SUPABASE_URL}/rest/v1/cfo_investments?id=gt.0`,{method:'DELETE',headers:sbHeaders()})
     ]);
-    state.transactions=[]; state.goals=[]; state.investments=[]; setSyncStatus('ok','reset'); renderAll();
+    state.transactions=[]; state.goals=[]; state.investments=[]; setSyncStatus('ok','reset'); renderAll(); renderCreditCards();
   }catch(e){ setSyncStatus('err','error'); }
 });
 
 document.querySelectorAll('#dl-filters .filter-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ document.querySelectorAll('#dl-filters .filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTxList(); }); });
+
+// Payment method change — show/hide card selector
+document.getElementById('tx-paymethod').addEventListener('change', e=>{
+  if(e.target.value === 'credit') showCCSelector();
+  else hideCCSelector();
+});
 
 document.getElementById('tx-cat').addEventListener('change',e=>{
   const sc=document.getElementById('tx-subcat'), v=e.target.value;
@@ -1057,6 +1192,8 @@ document.getElementById('tx-cat').addEventListener('change',e=>{
   else if(v==='investment') sc.value='stocks';
   else if(v==='transfer') sc.value='credit-card-payment';
   else sc.value='other-expense';
+  // Hide card selector if not an expense
+  if(v !== 'expense') hideCCSelector();
 });
 
 function exportCSV(){
