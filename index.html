@@ -209,6 +209,94 @@ a{color:var(--brass-soft)}
 .cc-selector-pill:hover{border-color:rgba(255,255,255,.3);color:#fff}
 .cc-selector-pill.cc-active{border-color:var(--cc-pill,#2A78D6);color:var(--cc-pill,#2A78D6);background:rgba(255,255,255,.03)}
 /* ── End Credit Card Widget ── */
+
+/* ── Month Navigator ── */
+.month-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--ink2);position:sticky;top:0;z-index:50}
+.month-nav-btn{background:transparent;border:1px solid var(--line);color:var(--text-dim);border-radius:8px;padding:5px 14px;font-size:18px;cursor:pointer;line-height:1;transition:.15s;font-family:var(--sans)}
+.month-nav-btn:hover{border-color:var(--brass);color:var(--brass)}
+.month-nav-btn:disabled{opacity:.25;cursor:default;border-color:var(--line)}
+.month-nav-center{display:flex;flex-direction:column;align-items:center;gap:2px}
+.month-nav-label{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.month-nav-sub{font-family:var(--mono);font-size:10px;color:var(--text-faint);letter-spacing:.06em;text-transform:uppercase}
+.month-nav-today{background:transparent;border:none;color:var(--brass-soft);font-size:11px;font-family:var(--mono);cursor:pointer;padding:2px 6px;border-radius:4px}
+.month-nav-today:hover{color:var(--brass)}
+/* ── End Month Navigator ── */
+
+/* ══════════════════════════════════════════════════════════
+   KEVIN CASH ROTATION
+   ══════════════════════════════════════════════════════════ */
+.cr-tab{background:var(--ink);min-height:100vh;padding:22px 20px}
+/* Rotation Wheel */
+.cr-wheel-wrap{display:flex;justify-content:center;align-items:center;margin-bottom:28px;position:relative}
+.cr-wheel-svg{filter:drop-shadow(0 0 32px rgba(201,162,39,.18))}
+.cr-center-label{text-anchor:middle;dominant-baseline:middle}
+.cr-center-amount{font-family:'Fraunces',serif;font-size:28px;font-weight:700;fill:#e9e6dd}
+.cr-center-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:#5c6478;text-transform:uppercase;letter-spacing:.08em}
+/* Flow lanes */
+.cr-lanes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.cr-lane{background:var(--ink2);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.cr-lane-title{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);font-weight:600;margin-bottom:12px}
+.cr-lane.in .cr-lane-title{color:var(--sage)}
+.cr-lane.out .cr-lane-title{color:var(--rust)}
+.cr-flow-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-soft);font-size:12px}
+.cr-flow-item:last-child{border-bottom:none}
+.cr-flow-label{color:var(--text-dim);text-transform:capitalize}
+.cr-flow-bar-wrap{flex:1;margin:0 10px;height:4px;background:var(--ink4);border-radius:99px;overflow:hidden}
+.cr-flow-bar{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.cr-lane.in .cr-flow-bar{background:var(--sage)}
+.cr-lane.out .cr-flow-bar{background:var(--rust)}
+.cr-flow-amt{font-family:var(--mono);font-size:11px;font-weight:600}
+.cr-lane.in .cr-flow-amt{color:var(--sage)}
+.cr-lane.out .cr-flow-amt{color:var(--rust)}
+/* Cash tx list */
+.cr-tx-section{background:var(--ink2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.cr-tx-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);color:var(--text-faint);margin-bottom:12px}
+.cr-tx-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.cr-tx-item:last-child{border-bottom:none}
+.cr-tx-left{display:flex;align-items:center;gap:10px}
+.cr-tx-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.cr-tx-icon.cash{background:rgba(116,169,138,.15);border:1px solid rgba(116,169,138,.3)}
+.cr-tx-icon.card{background:rgba(42,120,214,.15);border:1px solid rgba(42,120,214,.3)}
+.cr-tx-icon.out{background:rgba(193,96,75,.12);border:1px solid rgba(193,96,75,.3)}
+.cr-tx-desc{font-size:13px;color:var(--text)}
+.cr-tx-meta{font-size:10px;color:var(--text-faint);font-family:var(--mono);margin-top:1px}
+.cr-tx-right{text-align:right}
+.cr-tx-amt{font-family:var(--mono);font-size:14px;font-weight:600}
+.cr-tx-method{font-size:10px;font-family:var(--mono);margin-top:2px;padding:2px 7px;border-radius:99px;display:inline-block}
+.cr-tx-method.cash{background:rgba(116,169,138,.12);color:var(--sage)}
+.cr-tx-method.card{background:rgba(42,120,214,.12);color:#2A78D6}
+.cr-tx-method.bank{background:rgba(201,162,39,.1);color:var(--brass-soft)}
+.cr-tx-method.other{background:rgba(255,255,255,.06);color:var(--text-faint)}
+/* Cash summary stubs */
+.cr-stubs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.cr-stub{background:var(--ink2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:center;position:relative;overflow:hidden}
+.cr-stub::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.cr-stub.cash-in::after{background:var(--sage)}
+.cr-stub.cash-out::after{background:var(--rust)}
+.cr-stub.cash-left::after{background:var(--brass)}
+.cr-stub-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);color:var(--text-faint);margin-bottom:6px}
+.cr-stub-val{font-family:'Fraunces',serif;font-size:22px;font-weight:700}
+/* Income Allocation Modal */
+.alloc-overlay{position:fixed;inset:0;background:rgba(8,10,14,.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.alloc-modal{background:var(--ink2);border:1px solid var(--brass-dim);border-radius:18px;padding:28px;width:100%;max-width:420px;position:relative}
+.alloc-badge{display:inline-block;font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass-soft);border:1px solid var(--brass-dim);border-radius:99px;padding:3px 12px;margin-bottom:14px}
+.alloc-heading{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px}
+.alloc-subheading{font-size:13px;color:var(--text-dim);margin-bottom:20px}
+.alloc-amount-display{font-family:'Fraunces',serif;font-size:38px;font-weight:700;color:var(--brass-soft);text-align:center;padding:16px;background:rgba(201,162,39,.06);border:1px solid var(--brass-dim);border-radius:12px;margin-bottom:20px;letter-spacing:-.02em}
+.alloc-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.alloc-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--ink3);border-radius:10px;border:1px solid var(--line)}
+.alloc-row-icon{font-size:16px;width:28px;text-align:center;flex-shrink:0}
+.alloc-row-label{flex:1;font-size:13px;color:var(--text-dim)}
+.alloc-row-input{width:90px;background:var(--ink4);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:6px 8px;font-size:13px;font-family:var(--mono);text-align:right;margin-bottom:0}
+.alloc-row-input:focus{border-color:var(--brass);outline:none}
+.alloc-remaining{display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);padding:10px 12px;background:var(--ink3);border-radius:8px;margin-bottom:18px;font-family:var(--mono)}
+.alloc-remaining span:last-child{font-weight:600;color:var(--brass-soft)}
+.alloc-remaining span:last-child.over{color:var(--rust)}
+.alloc-btns{display:flex;gap:8px}
+.alloc-skip{background:transparent;border:1px solid var(--line);color:var(--text-dim);border-radius:8px;padding:10px;font-size:13px;cursor:pointer;flex:1;font-family:var(--sans)}
+.alloc-confirm{background:var(--brass);color:var(--ink);border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;flex:2;font-family:var(--sans)}
+.alloc-confirm:hover{background:var(--brass-soft)}
+/* ── End Cash Rotation ── */
 </style>
 </head>
 <body>
@@ -268,6 +356,7 @@ a{color:var(--brass-soft)}
       <button data-tab="budgets">Budgets</button>
       <button data-tab="goals">Goals</button>
       <button data-tab="forecast">Forecast</button>
+      <button data-tab="cashrotation">💸 Cash Rotation</button>
       <button data-tab="ai">AI advisor</button>
       <button data-tab="setup">Setup</button>
     </nav>
@@ -469,6 +558,47 @@ a{color:var(--brass-soft)}
       <div class="panel"><h3>Projected net worth</h3><div class="chart-box"><canvas id="networth-chart"></canvas></div></div>
     </div>
 
+    <!-- CASH ROTATION -->
+    <div class="tab cr-tab" id="tab-cashrotation">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div>
+          <p style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--brass-soft);letter-spacing:-.01em">Cash Rotation</p>
+          <p style="font-size:11px;color:var(--text-faint);font-family:var(--mono);margin-top:2px">Kevin's money in motion — <span id="cr-month-label">this month</span></p>
+        </div>
+        <div id="cr-health-badge" style="font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:99px;border:1px solid var(--sage-dim);color:var(--sage)">Healthy</div>
+      </div>
+
+      <!-- Wheel -->
+      <div class="cr-wheel-wrap">
+        <svg class="cr-wheel-svg" id="cr-wheel" width="280" height="280" viewBox="0 0 280 280"></svg>
+      </div>
+
+      <!-- Summary stubs -->
+      <div class="cr-stubs">
+        <div class="cr-stub cash-in"><div class="cr-stub-label">Cash In</div><div class="cr-stub-val green" id="cr-in">£0</div></div>
+        <div class="cr-stub cash-left"><div class="cr-stub-label">Remaining</div><div class="cr-stub-val brass" id="cr-left">£0</div></div>
+        <div class="cr-stub cash-out"><div class="cr-stub-label">Cash Out</div><div class="cr-stub-val red" id="cr-out">£0</div></div>
+      </div>
+
+      <!-- Flow lanes -->
+      <div class="cr-lanes">
+        <div class="cr-lane in">
+          <div class="cr-lane-title">↓ Money In</div>
+          <div id="cr-in-list"></div>
+        </div>
+        <div class="cr-lane out">
+          <div class="cr-lane-title">↑ Money Out</div>
+          <div id="cr-out-list"></div>
+        </div>
+      </div>
+
+      <!-- Transaction list by payment method -->
+      <div class="cr-tx-section">
+        <div class="cr-tx-title">All transactions — by payment method</div>
+        <div id="cr-tx-list"></div>
+      </div>
+    </div>
+
     <!-- AI -->
     <div class="tab" id="tab-ai">
       <div class="section-head"><h3>AI financial advisor</h3><span class="tag" id="ai-provider-tag">Powered by Claude</span></div>
@@ -552,6 +682,46 @@ a{color:var(--brass-soft)}
     <button data-tab="goals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Goals</button>
     <button data-tab="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>AI</button>
     <button data-tab="setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h0a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5h0a1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v0a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Setup</button>
+  </div>
+</div>
+
+<!-- INCOME ALLOCATION MODAL -->
+<div class="alloc-overlay" id="alloc-modal" style="display:none">
+  <div class="alloc-modal">
+    <div class="alloc-badge">💸 Kevin Cash Rotation</div>
+    <div class="alloc-heading">Income received!</div>
+    <div class="alloc-subheading">How do you want to rotate this money?</div>
+    <div class="alloc-amount-display" id="alloc-amount-display">£0</div>
+    <div class="alloc-rows">
+      <div class="alloc-row">
+        <span class="alloc-row-icon">🏠</span>
+        <span class="alloc-row-label">Bills & rent</span>
+        <input class="alloc-row-input" id="alloc-bills" type="number" placeholder="0" min="0">
+      </div>
+      <div class="alloc-row">
+        <span class="alloc-row-icon">🛒</span>
+        <span class="alloc-row-label">Daily spending</span>
+        <input class="alloc-row-input" id="alloc-spend" type="number" placeholder="0" min="0">
+      </div>
+      <div class="alloc-row">
+        <span class="alloc-row-icon">📈</span>
+        <span class="alloc-row-label">Investments / savings</span>
+        <input class="alloc-row-input" id="alloc-inv" type="number" placeholder="0" min="0">
+      </div>
+      <div class="alloc-row">
+        <span class="alloc-row-icon">💳</span>
+        <span class="alloc-row-label">Credit card bills</span>
+        <input class="alloc-row-input" id="alloc-cc" type="number" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="alloc-remaining">
+      <span>Unallocated</span>
+      <span id="alloc-remaining-val">£0</span>
+    </div>
+    <div class="alloc-btns">
+      <button class="alloc-skip" id="alloc-skip">Skip for now</button>
+      <button class="alloc-confirm" id="alloc-confirm">Save allocation →</button>
+    </div>
   </div>
 </div>
 
@@ -640,6 +810,8 @@ async function addTransaction(){
     document.getElementById('tx-desc').value=''; document.getElementById('tx-amt').value=''; document.getElementById('tx-note').value='';
     document.getElementById('tx-card-id').value='';
     renderAll(); renderCreditCards();
+    // Show cash rotation allocation modal for income entries
+    if(tx.category==='income') showAllocModal(tx.amount);
   }catch(e){ setSyncStatus('err','error'); alert('Could not save: '+e.message); }
   btn.disabled=false; btn.textContent='Add transaction';
 }
@@ -793,6 +965,7 @@ function renderAll(){
   renderWeekly(); renderMonthly(); renderGoals();
   renderForecast(); renderInvList(); renderAiSuggestions();
   renderExpensesTab(); renderBudgets();
+  if(document.getElementById('tab-cashrotation').classList.contains('active')) renderCashRotation();
 }
 
 function renderOvInv(){ const el=document.getElementById('ov-investments'); if(!state.investments.length){el.innerHTML='<div class="empty">Add accounts in Setup</div>';return;}
@@ -1123,6 +1296,7 @@ function setActiveTab(tabName){
   document.querySelectorAll('#bottomnav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tabName));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+tabName));
   renderAll();
+  if(tabName==='cashrotation') renderCashRotation();
 }
 document.querySelectorAll('#nav button, #bottomnav button').forEach(btn=>{ btn.addEventListener('click',()=>setActiveTab(btn.dataset.tab)); });
 
@@ -1225,6 +1399,241 @@ function startApp(){
   document.getElementById('tx-date').value=now.toISOString().split('T')[0];
   loadSetupFields(); loadAll();
 }
+// ══════════════════════════════════════════════════════════
+// KEVIN CASH ROTATION
+// ══════════════════════════════════════════════════════════
+const CR_PALETTE_IN  = ['#74a98a','#1baf7a','#4fc89a','#a8d8b9','#2d7a5c'];
+const CR_PALETTE_OUT = ['#c1604b','#e34948','#eda100','#8a93a8','#5c6478','#c9a227','#8f4636','#4f7a64'];
+
+function renderCashRotation(){
+  const mTx = getMonthTx();
+  const now2 = new Date();
+  const label = now2.toLocaleString('en-GB',{month:'long',year:'numeric'});
+  document.getElementById('cr-month-label').textContent = label;
+
+  // Totals
+  const totalIn  = mTx.filter(t=>t.category==='income').reduce((s,t)=>s+Number(t.amount),0);
+  const totalOut = mTx.filter(t=>t.category==='expense').reduce((s,t)=>s+Number(t.amount),0);
+  const totalInv = mTx.filter(t=>t.category==='investment').reduce((s,t)=>s+Number(t.amount),0);
+  const remaining = totalIn - totalOut - totalInv;
+
+  document.getElementById('cr-in').textContent   = fmt(totalIn);
+  document.getElementById('cr-out').textContent  = fmt(totalOut + totalInv);
+  document.getElementById('cr-left').textContent = fmt(Math.max(0,remaining));
+
+  // Health badge
+  const badge = document.getElementById('cr-health-badge');
+  const ratio = totalIn > 0 ? (totalOut/totalIn)*100 : 100;
+  if(ratio < 70){ badge.textContent='🟢 Healthy'; badge.style.color='var(--sage)'; badge.style.borderColor='var(--sage-dim)'; }
+  else if(ratio < 90){ badge.textContent='🟡 Watch out'; badge.style.color='var(--brass-soft)'; badge.style.borderColor='var(--brass-dim)'; }
+  else{ badge.textContent='🔴 Overspending'; badge.style.color='var(--rust)'; badge.style.borderColor='var(--rust-dim)'; }
+
+  // ── Wheel ────────────────────────────────────────────────
+  const svg = document.getElementById('cr-wheel');
+  const CX=140, CY=140, R_OUT=120, R_IN=80, R_MID=48;
+  const ns='http://www.w3.org/2000/svg';
+  svg.innerHTML='';
+
+  // Background circle
+  const bg=document.createElementNS(ns,'circle');
+  bg.setAttribute('cx',CX); bg.setAttribute('cy',CY); bg.setAttribute('r',R_OUT);
+  bg.setAttribute('fill','#161b25'); bg.setAttribute('stroke','#2a3242'); bg.setAttribute('stroke-width','1');
+  svg.appendChild(bg);
+
+  function arcPath(cx,cy,r,startAngle,endAngle){
+    const s1=Math.cos(startAngle)*r+cx, s2=Math.sin(startAngle)*r+cy;
+    const e1=Math.cos(endAngle)*r+cx,   e2=Math.sin(endAngle)*r+cy;
+    const large=endAngle-startAngle>Math.PI?1:0;
+    return `M ${s1} ${s2} A ${r} ${r} 0 ${large} 1 ${e1} ${e2}`;
+  }
+
+  // Income arcs (outer ring, top half — left side)
+  const incByCat = {};
+  mTx.filter(t=>t.category==='income').forEach(t=>{ const k=t.subcat||'income'; incByCat[k]=(incByCat[k]||0)+Number(t.amount); });
+  const incEntries = Object.entries(incByCat).sort((a,b)=>b[1]-a[1]);
+  const incTotal = incEntries.reduce((s,e)=>s+e[1],0);
+  let incAngle = -Math.PI;
+  incEntries.forEach(([ ,amt],i)=>{
+    const span = incTotal>0 ? (amt/incTotal)*Math.PI*1.8 : 0;
+    const path=document.createElementNS(ns,'path');
+    path.setAttribute('d',arcPath(CX,CY,R_OUT-6,incAngle,incAngle+span));
+    path.setAttribute('fill','none'); path.setAttribute('stroke',CR_PALETTE_IN[i%CR_PALETTE_IN.length]); path.setAttribute('stroke-width','22'); path.setAttribute('stroke-linecap','round');
+    svg.appendChild(path);
+    incAngle+=span+0.05;
+  });
+
+  // Expense arcs (outer ring, bottom half — right side)
+  const expByCat = {};
+  mTx.filter(t=>t.category==='expense').forEach(t=>{ const k=(t.subcat||'other').replace(/-/g,' '); expByCat[k]=(expByCat[k]||0)+Number(t.amount); });
+  mTx.filter(t=>t.category==='investment').forEach(t=>{ expByCat['investment']=(expByCat['investment']||0)+Number(t.amount); });
+  const expEntries = Object.entries(expByCat).sort((a,b)=>b[1]-a[1]);
+  const expTotal = expEntries.reduce((s,e)=>s+e[1],0);
+  let expAngle = 0;
+  expEntries.forEach(([,amt],i)=>{
+    const span = expTotal>0 ? (amt/expTotal)*Math.PI*1.8 : 0;
+    const path=document.createElementNS(ns,'path');
+    path.setAttribute('d',arcPath(CX,CY,R_OUT-6,expAngle,expAngle+span));
+    path.setAttribute('fill','none'); path.setAttribute('stroke',CR_PALETTE_OUT[i%CR_PALETTE_OUT.length]); path.setAttribute('stroke-width','22'); path.setAttribute('stroke-linecap','round');
+    svg.appendChild(path);
+    expAngle+=span+0.04;
+  });
+
+  // Inner separator ring
+  const sep=document.createElementNS(ns,'circle');
+  sep.setAttribute('cx',CX); sep.setAttribute('cy',CY); sep.setAttribute('r',R_IN);
+  sep.setAttribute('fill','#10141b'); sep.setAttribute('stroke','#2a3242'); sep.setAttribute('stroke-width','1');
+  svg.appendChild(sep);
+
+  // Remaining arc (middle ring)
+  if(totalIn>0){
+    const pct = Math.min(1, Math.max(0, remaining/totalIn));
+    const span = pct*Math.PI*2*0.9;
+    const path=document.createElementNS(ns,'path');
+    path.setAttribute('d',arcPath(CX,CY,R_MID+8,-Math.PI/2,-Math.PI/2+span));
+    path.setAttribute('fill','none'); path.setAttribute('stroke', remaining>=0?'#c9a227':'#c1604b'); path.setAttribute('stroke-width','10'); path.setAttribute('stroke-linecap','round');
+    svg.appendChild(path);
+  }
+
+  // Center background
+  const cBg=document.createElementNS(ns,'circle');
+  cBg.setAttribute('cx',CX); cBg.setAttribute('cy',CY); cBg.setAttribute('r',R_MID);
+  cBg.setAttribute('fill','#161b25');
+  svg.appendChild(cBg);
+
+  // Center text
+  const t1=document.createElementNS(ns,'text');
+  t1.setAttribute('x',CX); t1.setAttribute('y',CY-10); t1.setAttribute('class','cr-center-amount');
+  t1.textContent = fmt(Math.max(0,remaining));
+  svg.appendChild(t1);
+  const t2=document.createElementNS(ns,'text');
+  t2.setAttribute('x',CX); t2.setAttribute('y',CY+10); t2.setAttribute('class','cr-center-sub');
+  t2.textContent='remaining';
+  svg.appendChild(t2);
+
+  // Labels: IN / OUT
+  const lIn=document.createElementNS(ns,'text');
+  lIn.setAttribute('x',50); lIn.setAttribute('y',CY);
+  lIn.setAttribute('font-family','IBM Plex Mono'); lIn.setAttribute('font-size','10'); lIn.setAttribute('fill','#74a98a'); lIn.setAttribute('text-anchor','middle');
+  lIn.textContent='IN'; svg.appendChild(lIn);
+  const lOut=document.createElementNS(ns,'text');
+  lOut.setAttribute('x',230); lOut.setAttribute('y',CY);
+  lOut.setAttribute('font-family','IBM Plex Mono'); lOut.setAttribute('font-size','10'); lOut.setAttribute('fill','#c1604b'); lOut.setAttribute('text-anchor','middle');
+  lOut.textContent='OUT'; svg.appendChild(lOut);
+
+  // ── Flow Lanes ─────────────────────────────────────────
+  const inEl  = document.getElementById('cr-in-list');
+  const outEl = document.getElementById('cr-out-list');
+
+  if(!incEntries.length){ inEl.innerHTML='<div class="cr-flow-item"><span class="cr-flow-label">No income logged yet</span></div>'; }
+  else{
+    inEl.innerHTML = incEntries.map(([k,amt])=>{
+      const pct=incTotal>0?Math.round((amt/incTotal)*100):0;
+      return `<div class="cr-flow-item">
+        <span class="cr-flow-label">${k.replace(/-/g,' ')}</span>
+        <div class="cr-flow-bar-wrap"><div class="cr-flow-bar" style="width:${pct}%"></div></div>
+        <span class="cr-flow-amt">${fmt(amt)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  const allOut = [...expEntries];
+  if(!allOut.length){ outEl.innerHTML='<div class="cr-flow-item"><span class="cr-flow-label">No expenses yet</span></div>'; }
+  else{
+    outEl.innerHTML = allOut.map(([k,amt])=>{
+      const pct=expTotal>0?Math.round((amt/expTotal)*100):0;
+      return `<div class="cr-flow-item">
+        <span class="cr-flow-label">${k}</span>
+        <div class="cr-flow-bar-wrap"><div class="cr-flow-bar" style="width:${pct}%"></div></div>
+        <span class="cr-flow-amt">${fmt(amt)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Tx list by payment method ─────────────────────────
+  const pmIcon  = {cash:'💵',debit:'💳',credit:'💎','bank-transfer':'🏦'};
+  const pmClass = {cash:'cash',debit:'card',credit:'card','bank-transfer':'bank'};
+  const pmLabel = {cash:'Cash',debit:'Debit',credit:'Credit','bank-transfer':'Bank transfer'};
+
+  const sorted = [...mTx].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const txEl = document.getElementById('cr-tx-list');
+  if(!sorted.length){ txEl.innerHTML='<div class="cr-flow-item"><span class="cr-flow-label">No transactions this month yet</span></div>'; return; }
+
+  txEl.innerHTML = sorted.map(t=>{
+    const isIn  = t.category==='income';
+    const isInv = t.category==='investment';
+    const pm    = t.payment_method||'other';
+    const icon  = isIn ? '↓' : isInv ? '📈' : '↑';
+    const iconCls = isIn ? 'cash' : (pm==='credit'?'card':'out');
+    const sign  = isIn?'+': isInv?'~':'-';
+    const col   = isIn?'var(--sage)': isInv?'var(--brass-soft)':'var(--rust)';
+    const pmCls = pmClass[pm]||'other';
+    const pmTxt = pmLabel[pm]||pm;
+    return `<div class="cr-tx-item">
+      <div class="cr-tx-left">
+        <div class="cr-tx-icon ${iconCls}">${icon}</div>
+        <div>
+          <div class="cr-tx-desc">${t.description}</div>
+          <div class="cr-tx-meta">${t.date} · ${(t.subcat||'').replace(/-/g,' ')}</div>
+        </div>
+      </div>
+      <div class="cr-tx-right">
+        <div class="cr-tx-amt" style="color:${col}">${sign}${fmt(t.amount)}</div>
+        <span class="cr-tx-method ${pmCls}">${pmTxt}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Income Allocation Modal ─────────────────────────────
+let allocIncome = 0;
+
+function showAllocModal(amount){
+  allocIncome = amount;
+  document.getElementById('alloc-amount-display').textContent = fmt(amount);
+
+  // Smart pre-fill from budgets
+  const totalBudgeted = state.budgets.reduce((s,b)=>s+Number(b.monthly_amount),0);
+  const billGuess     = Math.min(amount, totalBudgeted);
+  const spendGuess    = Math.round(amount * 0.20);
+  const invGuess      = Math.round(amount * 0.10);
+  document.getElementById('alloc-bills').value  = billGuess||'';
+  document.getElementById('alloc-spend').value  = spendGuess||'';
+  document.getElementById('alloc-inv').value    = invGuess||'';
+  document.getElementById('alloc-cc').value     = '';
+  updateAllocRemaining();
+  document.getElementById('alloc-modal').style.display='flex';
+}
+
+function updateAllocRemaining(){
+  const bills = parseFloat(document.getElementById('alloc-bills').value)||0;
+  const spend = parseFloat(document.getElementById('alloc-spend').value)||0;
+  const inv   = parseFloat(document.getElementById('alloc-inv').value)||0;
+  const cc    = parseFloat(document.getElementById('alloc-cc').value)||0;
+  const remaining = allocIncome - bills - spend - inv - cc;
+  const el = document.getElementById('alloc-remaining-val');
+  el.textContent = fmt(Math.abs(remaining)) + (remaining < 0 ? ' over!' : ' free');
+  el.className = remaining < 0 ? 'over' : '';
+}
+
+['alloc-bills','alloc-spend','alloc-inv','alloc-cc'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateAllocRemaining);
+});
+
+document.getElementById('alloc-skip').addEventListener('click',()=>{
+  document.getElementById('alloc-modal').style.display='none';
+});
+
+document.getElementById('alloc-confirm').addEventListener('click',()=>{
+  document.getElementById('alloc-modal').style.display='none';
+  // Just close — allocation is informational for now (user logs separately)
+  // Future: could auto-create budget envelope transactions
+  document.querySelector('[data-tab="cashrotation"]').click();
+});
+
+// ══════════════════════════════════════════════════════════
+// END KEVIN CASH ROTATION
+// ══════════════════════════════════════════════════════════
+
 if(SUPABASE_URL && SUPABASE_KEY){ startApp(); } else { showOnboard(1); }
 </script>
 </body>
