@@ -297,6 +297,23 @@ a{color:var(--brass-soft)}
 .alloc-confirm{background:var(--brass);color:var(--ink);border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;flex:2;font-family:var(--sans)}
 .alloc-confirm:hover{background:var(--brass-soft)}
 /* ── End Cash Rotation ── */
+
+/* ── Income Type Toggle ── */
+.income-type-toggle{display:none;gap:8px;margin-bottom:10px}
+.income-type-toggle.visible{display:flex}
+.income-type-btn{flex:1;padding:12px 10px;border-radius:10px;border:1.5px solid var(--line);background:transparent;cursor:pointer;transition:all .2s;text-align:center;font-family:var(--sans)}
+.income-type-btn .it-icon{font-size:22px;display:block;margin-bottom:4px}
+.income-type-btn .it-label{font-size:12px;font-weight:600;color:var(--text-dim);display:block}
+.income-type-btn .it-sub{font-size:10px;color:var(--text-faint);display:block;margin-top:2px;font-family:var(--mono)}
+.income-type-btn.active-cash{border-color:var(--sage);background:rgba(116,169,138,.08)}
+.income-type-btn.active-cash .it-label{color:var(--sage)}
+.income-type-btn.active-account{border-color:#2A78D6;background:rgba(42,120,214,.08)}
+.income-type-btn.active-account .it-label{color:#2A78D6}
+/* cr stubs 4 col */
+.cr-stubs-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:600px){.cr-stubs-4{grid-template-columns:repeat(2,1fr)}}
+.cr-stub.account-in::after{background:#2A78D6}
+/* ── End Income Type Toggle ── */
 </style>
 </head>
 <body>
@@ -426,6 +443,19 @@ a{color:var(--brass-soft)}
               <option value="credit-card-payment">Credit card payment</option><option value="account-transfer">Between my accounts</option><option value="other-transfer">Other transfer</option>
             </select>
           </div>
+        </div>
+        <!-- Income type toggle — shown when category = income -->
+        <div class="income-type-toggle" id="income-type-toggle">
+          <button type="button" class="income-type-btn active-cash" id="it-cash" onclick="setIncomeType('cash')">
+            <span class="it-icon">💵</span>
+            <span class="it-label">Daily Cash</span>
+            <span class="it-sub">Pocket money · hand to hand</span>
+          </button>
+          <button type="button" class="income-type-btn" id="it-account" onclick="setIncomeType('account')">
+            <span class="it-icon">🏦</span>
+            <span class="it-label">Account / Salary</span>
+            <span class="it-sub">Bank transfer · monthly</span>
+          </button>
         </div>
         <div class="form-row">
           <div><label>Payment method</label>
@@ -574,27 +604,33 @@ a{color:var(--brass-soft)}
       </div>
 
       <!-- Summary stubs -->
-      <div class="cr-stubs">
-        <div class="cr-stub cash-in"><div class="cr-stub-label">Cash In</div><div class="cr-stub-val green" id="cr-in">£0</div></div>
-        <div class="cr-stub cash-left"><div class="cr-stub-label">Remaining</div><div class="cr-stub-val brass" id="cr-left">£0</div></div>
-        <div class="cr-stub cash-out"><div class="cr-stub-label">Cash Out</div><div class="cr-stub-val red" id="cr-out">£0</div></div>
+      <div class="cr-stubs-4">
+        <div class="cr-stub cash-in"><div class="cr-stub-label">💵 Daily Cash</div><div class="cr-stub-val green" id="cr-daily-cash">£0</div></div>
+        <div class="cr-stub account-in"><div class="cr-stub-label">🏦 Account</div><div class="cr-stub-val" style="color:#2A78D6" id="cr-account">£0</div></div>
+        <div class="cr-stub cash-out"><div class="cr-stub-label">↑ Total Out</div><div class="cr-stub-val red" id="cr-out">£0</div></div>
+        <div class="cr-stub cash-left"><div class="cr-stub-label">✓ Remaining</div><div class="cr-stub-val brass" id="cr-left">£0</div></div>
       </div>
 
-      <!-- Flow lanes -->
-      <div class="cr-lanes">
-        <div class="cr-lane in">
-          <div class="cr-lane-title">↓ Money In</div>
-          <div id="cr-in-list"></div>
+      <!-- Flow lanes — 3 cols: daily cash | account | out -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px" id="cr-three-lanes">
+        <div class="cr-lane in" style="border-color:rgba(116,169,138,.3)">
+          <div class="cr-lane-title" style="color:var(--sage)">💵 Daily Cash In</div>
+          <div id="cr-daily-list"></div>
+        </div>
+        <div class="cr-lane in" style="border-color:rgba(42,120,214,.3)">
+          <div class="cr-lane-title" style="color:#2A78D6">🏦 Account In</div>
+          <div id="cr-account-list"></div>
         </div>
         <div class="cr-lane out">
           <div class="cr-lane-title">↑ Money Out</div>
           <div id="cr-out-list"></div>
         </div>
       </div>
+      @media(max-width:640px){#cr-three-lanes{grid-template-columns:1fr!important}}
 
       <!-- Transaction list by payment method -->
       <div class="cr-tx-section">
-        <div class="cr-tx-title">All transactions — by payment method</div>
+        <div class="cr-tx-title">All transactions — cash vs account</div>
         <div id="cr-tx-list"></div>
       </div>
     </div>
@@ -811,7 +847,7 @@ async function addTransaction(){
     document.getElementById('tx-card-id').value='';
     renderAll(); renderCreditCards();
     // Show cash rotation allocation modal for income entries
-    if(tx.category==='income') showAllocModal(tx.amount);
+    if(tx.category==='income') showAllocModal(tx.amount, isDaily({...tx, payment_method: tx.payment_method}));
   }catch(e){ setSyncStatus('err','error'); alert('Could not save: '+e.message); }
   btn.disabled=false; btn.textContent='Add transaction';
 }
@@ -1362,11 +1398,10 @@ document.getElementById('tx-cat').addEventListener('change',e=>{
   };
   const activeGroup=groups[v]||groups.expense;
   sc.querySelectorAll('option').forEach(o=>{ o.style.display=activeGroup.includes(o.value)?'':'none'; });
-  if(v==='income') sc.value='salary';
-  else if(v==='investment') sc.value='stocks';
-  else if(v==='transfer') sc.value='credit-card-payment';
-  else sc.value='other-expense';
-  // Hide card selector if not an expense
+  if(v==='income'){ sc.value='other-income'; document.getElementById('income-type-toggle').classList.add('visible'); setIncomeType('cash'); }
+  else if(v==='investment'){ sc.value='stocks'; document.getElementById('income-type-toggle').classList.remove('visible'); }
+  else if(v==='transfer'){ sc.value='credit-card-payment'; document.getElementById('income-type-toggle').classList.remove('visible'); }
+  else{ sc.value='other-expense'; document.getElementById('income-type-toggle').classList.remove('visible'); }
   if(v !== 'expense') hideCCSelector();
 });
 
@@ -1400,10 +1435,298 @@ function startApp(){
   loadSetupFields(); loadAll();
 }
 // ══════════════════════════════════════════════════════════
-// KEVIN CASH ROTATION
+// KEVIN CASH ROTATION — split daily cash vs account income
 // ══════════════════════════════════════════════════════════
 const CR_PALETTE_IN  = ['#74a98a','#1baf7a','#4fc89a','#a8d8b9','#2d7a5c'];
+const CR_PALETTE_ACC = ['#2A78D6','#5ba3f5','#1a5fad','#4fc3f7','#0d47a1'];
 const CR_PALETTE_OUT = ['#c1604b','#e34948','#eda100','#8a93a8','#5c6478','#c9a227','#8f4636','#4f7a64'];
+
+// Determine if a transaction is "daily cash" or "account"
+function isDaily(t){
+  // Daily cash = payment_method is cash OR null/unspecified with small daily amounts (not salary subcat)
+  if(t.payment_method === 'cash') return true;
+  if(t.payment_method === 'bank-transfer') return false;
+  if(t.subcat === 'salary') return false; // salary always = account
+  return true; // default unspecified income = daily cash
+}
+
+function renderCashRotation(){
+  const mTx = getMonthTx();
+  const now2 = new Date();
+  const label = now2.toLocaleString('en-GB',{month:'long',year:'numeric'});
+  document.getElementById('cr-month-label').textContent = label;
+
+  const incTxns = mTx.filter(t=>t.category==='income');
+  const expTxns = mTx.filter(t=>t.category==='expense');
+  const invTxns = mTx.filter(t=>t.category==='investment');
+
+  // Split income into daily cash vs account
+  const dailyTxns   = incTxns.filter(t=>isDaily(t));
+  const accountTxns = incTxns.filter(t=>!isDaily(t));
+
+  const totalDaily   = dailyTxns.reduce((s,t)=>s+Number(t.amount),0);
+  const totalAccount = accountTxns.reduce((s,t)=>s+Number(t.amount),0);
+  const totalIn      = totalDaily + totalAccount;
+  const totalOut     = expTxns.reduce((s,t)=>s+Number(t.amount),0);
+  const totalInv     = invTxns.reduce((s,t)=>s+Number(t.amount),0);
+  const remaining    = totalIn - totalOut - totalInv;
+
+  document.getElementById('cr-daily-cash').textContent = fmt(totalDaily);
+  document.getElementById('cr-account').textContent    = fmt(totalAccount);
+  document.getElementById('cr-out').textContent        = fmt(totalOut + totalInv);
+  document.getElementById('cr-left').textContent       = fmt(Math.max(0,remaining));
+
+  // Health badge
+  const badge = document.getElementById('cr-health-badge');
+  const ratio = totalIn > 0 ? ((totalOut+totalInv)/totalIn)*100 : 100;
+  if(ratio<70){badge.textContent='🟢 Healthy';badge.style.color='var(--sage)';badge.style.borderColor='var(--sage-dim)';}
+  else if(ratio<90){badge.textContent='🟡 Watch out';badge.style.color='var(--brass-soft)';badge.style.borderColor='var(--brass-dim)';}
+  else{badge.textContent='🔴 Overspending';badge.style.color='var(--rust)';badge.style.borderColor='var(--rust-dim)';}
+
+  // ── Wheel ────────────────────────────────────────────────
+  const svg=document.getElementById('cr-wheel');
+  const CX=140,CY=140,R_OUT=120,R_IN=80,R_MID=48;
+  const ns='http://www.w3.org/2000/svg';
+  svg.innerHTML='';
+
+  const bg=document.createElementNS(ns,'circle');
+  bg.setAttribute('cx',CX);bg.setAttribute('cy',CY);bg.setAttribute('r',R_OUT);
+  bg.setAttribute('fill','#161b25');bg.setAttribute('stroke','#2a3242');bg.setAttribute('stroke-width','1');
+  svg.appendChild(bg);
+
+  function arcPath(cx,cy,r,s,e){
+    const s1=Math.cos(s)*r+cx,s2=Math.sin(s)*r+cy,e1=Math.cos(e)*r+cx,e2=Math.sin(e)*r+cy;
+    return `M ${s1} ${s2} A ${r} ${r} 0 ${e-s>Math.PI?1:0} 1 ${e1} ${e2}`;
+  }
+
+  // Daily cash arcs — top left (green)
+  const dailyByDesc={};
+  dailyTxns.forEach(t=>{dailyByDesc[t.description]=(dailyByDesc[t.description]||0)+Number(t.amount);});
+  const dailyEntries=Object.entries(dailyByDesc).sort((a,b)=>b[1]-a[1]);
+  let ang=-Math.PI;
+  dailyEntries.forEach(([,amt],i)=>{
+    const span=totalDaily>0?(amt/totalDaily)*(Math.PI*0.85):0;
+    const p=document.createElementNS(ns,'path');
+    p.setAttribute('d',arcPath(CX,CY,R_OUT-6,ang,ang+span));
+    p.setAttribute('fill','none');p.setAttribute('stroke',CR_PALETTE_IN[i%CR_PALETTE_IN.length]);
+    p.setAttribute('stroke-width','20');p.setAttribute('stroke-linecap','round');
+    svg.appendChild(p); ang+=span+0.04;
+  });
+
+  // Account arcs — top right (blue)
+  const accByDesc={};
+  accountTxns.forEach(t=>{accByDesc[t.description]=(accByDesc[t.description]||0)+Number(t.amount);});
+  const accEntries=Object.entries(accByDesc).sort((a,b)=>b[1]-a[1]);
+  ang=-(Math.PI*0.1);
+  accEntries.forEach(([,amt],i)=>{
+    const span=totalAccount>0?(amt/totalAccount)*(Math.PI*0.85):0;
+    const p=document.createElementNS(ns,'path');
+    p.setAttribute('d',arcPath(CX,CY,R_OUT-6,ang,ang+span));
+    p.setAttribute('fill','none');p.setAttribute('stroke',CR_PALETTE_ACC[i%CR_PALETTE_ACC.length]);
+    p.setAttribute('stroke-width','20');p.setAttribute('stroke-linecap','round');
+    svg.appendChild(p); ang+=span+0.04;
+  });
+
+  // Expense arcs — bottom (red)
+  const expByCat={};
+  expTxns.forEach(t=>{const k=(t.subcat||'other').replace(/-/g,' ');expByCat[k]=(expByCat[k]||0)+Number(t.amount);});
+  invTxns.forEach(t=>{expByCat['invested']=(expByCat['invested']||0)+Number(t.amount);});
+  const expEntries=Object.entries(expByCat).sort((a,b)=>b[1]-a[1]);
+  const expTotal=expEntries.reduce((s,e)=>s+e[1],0);
+  ang=Math.PI*0.05;
+  expEntries.forEach(([,amt],i)=>{
+    const span=expTotal>0?(amt/expTotal)*(Math.PI*1.85):0;
+    const p=document.createElementNS(ns,'path');
+    p.setAttribute('d',arcPath(CX,CY,R_OUT-6,ang,ang+span));
+    p.setAttribute('fill','none');p.setAttribute('stroke',CR_PALETTE_OUT[i%CR_PALETTE_OUT.length]);
+    p.setAttribute('stroke-width','20');p.setAttribute('stroke-linecap','round');
+    svg.appendChild(p); ang+=span+0.03;
+  });
+
+  // Inner ring
+  const sep=document.createElementNS(ns,'circle');
+  sep.setAttribute('cx',CX);sep.setAttribute('cy',CY);sep.setAttribute('r',R_IN);
+  sep.setAttribute('fill','#10141b');sep.setAttribute('stroke','#2a3242');sep.setAttribute('stroke-width','1');
+  svg.appendChild(sep);
+
+  // Remaining arc
+  if(totalIn>0){
+    const pct=Math.min(1,Math.max(0,remaining/totalIn));
+    const p=document.createElementNS(ns,'path');
+    p.setAttribute('d',arcPath(CX,CY,R_MID+8,-Math.PI/2,-Math.PI/2+pct*Math.PI*2*0.9));
+    p.setAttribute('fill','none');p.setAttribute('stroke',remaining>=0?'#c9a227':'#c1604b');
+    p.setAttribute('stroke-width','10');p.setAttribute('stroke-linecap','round');
+    svg.appendChild(p);
+  }
+
+  const cBg=document.createElementNS(ns,'circle');
+  cBg.setAttribute('cx',CX);cBg.setAttribute('cy',CY);cBg.setAttribute('r',R_MID);
+  cBg.setAttribute('fill','#161b25'); svg.appendChild(cBg);
+
+  const t1=document.createElementNS(ns,'text');
+  t1.setAttribute('x',CX);t1.setAttribute('y',CY-10);t1.setAttribute('class','cr-center-amount');
+  t1.textContent=fmt(Math.max(0,remaining)); svg.appendChild(t1);
+  const t2=document.createElementNS(ns,'text');
+  t2.setAttribute('x',CX);t2.setAttribute('y',CY+10);t2.setAttribute('class','cr-center-sub');
+  t2.textContent='remaining'; svg.appendChild(t2);
+
+  // Labels
+  [['💵',28,CY-28,'#74a98a'],['🏦',232,CY-28,'#2A78D6'],['OUT',CX,CY+108,'#c1604b']].forEach(([txt,x,y,col])=>{
+    const el=document.createElementNS(ns,'text');
+    el.setAttribute('x',x);el.setAttribute('y',y);
+    el.setAttribute('font-family','IBM Plex Mono');el.setAttribute('font-size','11');
+    el.setAttribute('fill',col);el.setAttribute('text-anchor','middle');
+    el.textContent=txt; svg.appendChild(el);
+  });
+
+  // ── Daily Cash lane ─────────────────────────────────────
+  const dailyEl=document.getElementById('cr-daily-list');
+  if(!dailyTxns.length){
+    dailyEl.innerHTML='<div class="cr-flow-item"><span class="cr-flow-label" style="font-style:italic">No daily cash logged</span></div>';
+  } else {
+    const byDesc={};
+    dailyTxns.forEach(t=>{byDesc[t.description]=(byDesc[t.description]||0)+Number(t.amount);});
+    dailyEl.innerHTML=Object.entries(byDesc).sort((a,b)=>b[1]-a[1]).map(([k,amt])=>{
+      const pct=totalDaily>0?Math.round((amt/totalDaily)*100):0;
+      return `<div class="cr-flow-item">
+        <span class="cr-flow-label">${k}</span>
+        <div class="cr-flow-bar-wrap"><div class="cr-flow-bar" style="width:${pct}%;background:var(--sage)"></div></div>
+        <span class="cr-flow-amt">${fmt(amt)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Account lane ─────────────────────────────────────────
+  const accEl=document.getElementById('cr-account-list');
+  if(!accountTxns.length){
+    accEl.innerHTML='<div class="cr-flow-item"><span class="cr-flow-label" style="font-style:italic">No account income logged</span></div>';
+  } else {
+    const byDesc={};
+    accountTxns.forEach(t=>{byDesc[t.description]=(byDesc[t.description]||0)+Number(t.amount);});
+    accEl.innerHTML=Object.entries(byDesc).sort((a,b)=>b[1]-a[1]).map(([k,amt])=>{
+      const pct=totalAccount>0?Math.round((amt/totalAccount)*100):0;
+      return `<div class="cr-flow-item">
+        <span class="cr-flow-label">${k}</span>
+        <div class="cr-flow-bar-wrap"><div class="cr-flow-bar" style="width:${pct}%;background:#2A78D6"></div></div>
+        <span class="cr-flow-amt" style="color:#2A78D6">${fmt(amt)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Out lane ─────────────────────────────────────────────
+  const outEl=document.getElementById('cr-out-list');
+  if(!expEntries.length){
+    outEl.innerHTML='<div class="cr-flow-item"><span class="cr-flow-label" style="font-style:italic">No expenses yet</span></div>';
+  } else {
+    outEl.innerHTML=expEntries.map(([k,amt])=>{
+      const pct=expTotal>0?Math.round((amt/expTotal)*100):0;
+      return `<div class="cr-flow-item">
+        <span class="cr-flow-label">${k}</span>
+        <div class="cr-flow-bar-wrap"><div class="cr-flow-bar" style="width:${pct}%;background:var(--rust)"></div></div>
+        <span class="cr-flow-amt" style="color:var(--rust)">${fmt(amt)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Transaction list ─────────────────────────────────────
+  const sorted=[...mTx].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const txEl=document.getElementById('cr-tx-list');
+  if(!sorted.length){txEl.innerHTML='<div class="cr-flow-item"><span class="cr-flow-label">No transactions this month yet</span></div>';return;}
+
+  txEl.innerHTML=sorted.map(t=>{
+    const isInc=t.category==='income', isInv=t.category==='investment';
+    const daily=isInc&&isDaily(t);
+    const account=isInc&&!isDaily(t);
+    const icon=daily?'💵':account?'🏦':isInv?'📈':'↑';
+    const iconCls=daily?'cash':account?'card':'out';
+    const sign=isInc?'+':isInv?'~':'-';
+    const col=daily?'var(--sage)':account?'#2A78D6':isInv?'var(--brass-soft)':'var(--rust)';
+    const methodTag=daily?'<span class="cr-tx-method cash">Daily Cash</span>':
+                    account?'<span class="cr-tx-method card">Account</span>':
+                    isInv?'<span class="cr-tx-method bank">Investment</span>':
+                    `<span class="cr-tx-method ${t.payment_method==='cash'?'cash':t.payment_method==='bank-transfer'?'bank':t.payment_method==='credit'?'card':'other'}">${t.payment_method||'—'}</span>`;
+    return `<div class="cr-tx-item">
+      <div class="cr-tx-left">
+        <div class="cr-tx-icon ${iconCls}">${icon}</div>
+        <div>
+          <div class="cr-tx-desc">${t.description}</div>
+          <div class="cr-tx-meta">${t.date} · ${(t.subcat||'').replace(/-/g,' ')}</div>
+        </div>
+      </div>
+      <div class="cr-tx-right">
+        <div class="cr-tx-amt" style="color:${col}">${sign}${fmt(t.amount)}</div>
+        ${methodTag}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Income Type Toggle ────────────────────────────────────
+let incomeType = 'cash'; // 'cash' or 'account'
+
+function setIncomeType(type){
+  incomeType = type;
+  document.getElementById('it-cash').className    = 'income-type-btn' + (type==='cash'?' active-cash':'');
+  document.getElementById('it-account').className = 'income-type-btn' + (type==='account'?' active-account':'');
+  // Auto-set payment method
+  const pm = document.getElementById('tx-paymethod');
+  if(type==='cash') pm.value='cash';
+  else pm.value='bank-transfer';
+  pm.dispatchEvent(new Event('change'));
+  // Auto-set subcat
+  const sc = document.getElementById('tx-subcat');
+  if(type==='account') sc.value='salary';
+  else sc.value='other-income';
+}
+
+// ── Income Allocation Modal ─────────────────────────────
+let allocIncome = 0;
+
+function showAllocModal(amount, isDaily){
+  allocIncome = amount;
+  const el = document.getElementById('alloc-amount-display');
+  el.textContent = fmt(amount);
+  el.style.borderColor = isDaily ? 'var(--sage-dim)' : '#1a5fad';
+  el.style.color = isDaily ? 'var(--sage)' : '#5ba3f5';
+  document.querySelector('.alloc-badge').textContent = isDaily ? '💵 Daily Cash Rotation' : '🏦 Account Income Rotation';
+
+  const totalBudgeted = state.budgets.reduce((s,b)=>s+Number(b.monthly_amount),0);
+  if(!isDaily){
+    document.getElementById('alloc-bills').value  = Math.min(amount, totalBudgeted)||'';
+    document.getElementById('alloc-spend').value  = Math.round(amount*0.20)||'';
+    document.getElementById('alloc-inv').value    = Math.round(amount*0.10)||'';
+  } else {
+    document.getElementById('alloc-bills').value  = '';
+    document.getElementById('alloc-spend').value  = Math.round(amount*0.70)||'';
+    document.getElementById('alloc-inv').value    = '';
+  }
+  document.getElementById('alloc-cc').value = '';
+  updateAllocRemaining();
+  document.getElementById('alloc-modal').style.display='flex';
+}
+
+function updateAllocRemaining(){
+  const bills=parseFloat(document.getElementById('alloc-bills').value)||0;
+  const spend=parseFloat(document.getElementById('alloc-spend').value)||0;
+  const inv  =parseFloat(document.getElementById('alloc-inv').value)||0;
+  const cc   =parseFloat(document.getElementById('alloc-cc').value)||0;
+  const rem  =allocIncome-bills-spend-inv-cc;
+  const el=document.getElementById('alloc-remaining-val');
+  el.textContent=fmt(Math.abs(rem))+(rem<0?' over!':' free');
+  el.className=rem<0?'over':'';
+}
+
+['alloc-bills','alloc-spend','alloc-inv','alloc-cc'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',updateAllocRemaining);
+});
+document.getElementById('alloc-skip').addEventListener('click',()=>{document.getElementById('alloc-modal').style.display='none';});
+document.getElementById('alloc-confirm').addEventListener('click',()=>{
+  document.getElementById('alloc-modal').style.display='none';
+  document.querySelector('[data-tab="cashrotation"]').click();
+});
+// ══════════════════════════════════════════════════════════
+// END KEVIN CASH ROTATION
+// ══════════════════════════════════════════════════════════
 
 function renderCashRotation(){
   const mTx = getMonthTx();
@@ -1583,52 +1906,6 @@ function renderCashRotation(){
     </div>`;
   }).join('');
 }
-
-// ── Income Allocation Modal ─────────────────────────────
-let allocIncome = 0;
-
-function showAllocModal(amount){
-  allocIncome = amount;
-  document.getElementById('alloc-amount-display').textContent = fmt(amount);
-
-  // Smart pre-fill from budgets
-  const totalBudgeted = state.budgets.reduce((s,b)=>s+Number(b.monthly_amount),0);
-  const billGuess     = Math.min(amount, totalBudgeted);
-  const spendGuess    = Math.round(amount * 0.20);
-  const invGuess      = Math.round(amount * 0.10);
-  document.getElementById('alloc-bills').value  = billGuess||'';
-  document.getElementById('alloc-spend').value  = spendGuess||'';
-  document.getElementById('alloc-inv').value    = invGuess||'';
-  document.getElementById('alloc-cc').value     = '';
-  updateAllocRemaining();
-  document.getElementById('alloc-modal').style.display='flex';
-}
-
-function updateAllocRemaining(){
-  const bills = parseFloat(document.getElementById('alloc-bills').value)||0;
-  const spend = parseFloat(document.getElementById('alloc-spend').value)||0;
-  const inv   = parseFloat(document.getElementById('alloc-inv').value)||0;
-  const cc    = parseFloat(document.getElementById('alloc-cc').value)||0;
-  const remaining = allocIncome - bills - spend - inv - cc;
-  const el = document.getElementById('alloc-remaining-val');
-  el.textContent = fmt(Math.abs(remaining)) + (remaining < 0 ? ' over!' : ' free');
-  el.className = remaining < 0 ? 'over' : '';
-}
-
-['alloc-bills','alloc-spend','alloc-inv','alloc-cc'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', updateAllocRemaining);
-});
-
-document.getElementById('alloc-skip').addEventListener('click',()=>{
-  document.getElementById('alloc-modal').style.display='none';
-});
-
-document.getElementById('alloc-confirm').addEventListener('click',()=>{
-  document.getElementById('alloc-modal').style.display='none';
-  // Just close — allocation is informational for now (user logs separately)
-  // Future: could auto-create budget envelope transactions
-  document.querySelector('[data-tab="cashrotation"]').click();
-});
 
 // ══════════════════════════════════════════════════════════
 // END KEVIN CASH ROTATION
