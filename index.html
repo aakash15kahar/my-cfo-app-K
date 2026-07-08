@@ -367,7 +367,7 @@ a{color:var(--brass-soft)}
     <nav class="topnav" id="nav">
       <button class="active" data-tab="overview">Overview</button>
       <button data-tab="dailylog">Daily log</button>
-      <button data-tab="weekly">Weekly</button>
+      <button data-tab="weekly">This Month</button>
       <button data-tab="monthly">Monthly</button>
       <button data-tab="expenses">Expenses</button>
       <button data-tab="budgets">Budgets</button>
@@ -496,7 +496,7 @@ a{color:var(--brass-soft)}
     <!-- WEEKLY -->
     <div class="tab" id="tab-weekly">
       <div class="stub-grid" id="weekly-cards"></div>
-      <div class="panel"><h3>Spending by category</h3><div class="chart-box"><canvas id="weekly-chart"></canvas></div></div>
+      <div class="panel"><h3>Spending by category — this month</h3><div class="chart-box"><canvas id="weekly-chart"></canvas></div></div>
     </div>
 
     <!-- MONTHLY -->
@@ -712,7 +712,7 @@ a{color:var(--brass-soft)}
 <div class="bottomnav" id="bottomnav">
   <div class="bottomnav-inner">
     <button class="active" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Overview</button>
-    <button data-tab="dailylog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>Log</button>
+    <button data-tab="weekly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Month</button>
     <button data-tab="goals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Goals</button>
     <button data-tab="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>AI</button>
     <button data-tab="setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h0a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5h0a1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v0a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Setup</button>
@@ -964,7 +964,7 @@ const fmt=(n,showSign=false)=>{ const s=Math.abs(Math.round(n)).toLocaleString('
 const pct=n=>Math.round(n)+'%';
 
 function getMonthTx(offset=0){ const d=new Date(now.getFullYear(),now.getMonth()+offset,1); const yr=d.getFullYear(),mo=d.getMonth(); return state.transactions.filter(t=>{ const td=new Date(t.date); return td.getFullYear()===yr&&td.getMonth()===mo; }); }
-function getWeekTx(){ const start=new Date(now); start.setDate(now.getDate()-now.getDay()+1); start.setHours(0,0,0,0); return state.transactions.filter(t=>new Date(t.date)>=start); }
+function getWeekTx(){ return getMonthTx(); }
 function calcStats(txs){ let income=0,spent=0,invested=0,optional=0; txs.forEach(t=>{ if(t.category==='income') income+=Number(t.amount); else if(t.category==='investment') invested+=Number(t.amount); else if(t.category==='expense'){ spent+=Number(t.amount); if(['entertainment','shopping','dining'].includes(t.subcat)) optional+=Number(t.amount); } }); const cashflow=income-spent-invested; const saverate=income>0?Math.round((cashflow/income)*100):0; return {income,spent,invested,optional,cashflow,saverate}; }
 function calcHealth(stats){ let s=30; if(stats.income>0){ s+=Math.min(25,stats.saverate*0.5); if(stats.saverate>=20) s+=10; const invR=(stats.invested/stats.income)*100; s+=Math.min(15,invR*0.75); const bu=state.profile.budget>0?(stats.spent/state.profile.budget)*100:100; if(bu<=80) s+=10; else if(bu<=100) s+=5; if(state.goals.length>0) s+=5; if(state.investments.length>0) s+=5; } return Math.min(100,Math.max(0,Math.round(s))); }
 
@@ -979,6 +979,7 @@ function renderGauge(score){
 }
 
 function renderAll(){
+  try{
   const mTx=getMonthTx(), stats=calcStats(mTx), health=calcHealth(stats);
   const networth=state.investments.reduce((s,i)=>s+(Number(i.balance)||0),0);
   const lifetimeStats=calcStats(state.transactions);
@@ -1000,6 +1001,7 @@ function renderAll(){
   renderForecast(); renderInvList(); renderAiSuggestions();
   renderExpensesTab(); renderBudgets();
   if(document.getElementById('tab-cashrotation').classList.contains('active')) renderCashRotation();
+  }catch(e){ console.error('renderAll error:', e); }
 }
 
 function renderOvInv(){ const el=document.getElementById('ov-investments'); if(!state.investments.length){el.innerHTML='<div class="empty">Add accounts in Setup</div>';return;}
@@ -1179,21 +1181,22 @@ function renderAiSuggestions(){
 function renderCreditCards(){
   const grid = document.getElementById('ccGrid');
   if(!grid) return;
-  const cards = state.creditCards;
+  const label = grid.previousElementSibling;
+  const cards = state.creditCards || [];
   if(!cards.length){
     grid.style.display='none';
-    grid.previousElementSibling.style.display='none';
+    if(label) label.style.display='none';
     return;
   }
   grid.style.display='grid';
-  grid.previousElementSibling.style.display='';
+  if(label) label.style.display='';
   const now2 = new Date();
   const yr = now2.getFullYear(), mo = now2.getMonth()+1;
   const lastDay = new Date(yr, mo, 0).getDate();
   const from = `${yr}-${String(mo).padStart(2,'0')}-01`;
   const to   = `${yr}-${String(mo).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
   grid.innerHTML = cards.map(card => {
-    const txns = state.transactions.filter(t =>
+    const txns = (state.transactions||[]).filter(t =>
       t.card_id === card.id && t.category === 'expense' && t.date >= from && t.date <= to
     );
     const spent = txns.reduce((s,t) => s + Number(t.amount), 0);
