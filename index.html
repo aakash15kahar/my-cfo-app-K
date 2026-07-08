@@ -791,9 +791,14 @@ async function loadAll(){
     state.transactions = txRows; state.goals = goalRows; state.investments = invRows;
     try{ state.budgets = await sbGet('cfo_budgets'); }catch(e){ state.budgets = []; console.warn('cfo_budgets not found'); }
     try{ const cards=await fetch(`${SUPABASE_URL}/rest/v1/cfo_credit_cards?order=id.asc`,{headers:sbHeaders()}); state.creditCards=cards.ok?await cards.json():[]; }catch(e){ state.creditCards=[]; }
-    setSyncStatus('ok','synced');
+    setSyncStatus('ok',`synced · ${txRows.length} tx`);
     loadSetupFields(); renderAll(); renderCreditCards();
-  }catch(e){ setSyncStatus('err','offline'); console.error(e); }
+    // Show warning if no data loaded
+    if(!txRows.length){
+      document.getElementById('sync-badge').textContent='⚠ 0 transactions — check Supabase';
+      document.getElementById('sync-badge').className='sync-pill sync-err';
+    }
+  }catch(e){ setSyncStatus('err','error: '+e.message.slice(0,40)); console.error(e); }
 }
 
 async function saveProfile(){
